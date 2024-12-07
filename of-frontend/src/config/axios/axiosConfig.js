@@ -5,7 +5,6 @@ let retryAttempt = 0;
 let baseURL = 'https://localhost:8443';
 const currentURL = window.location.hostname;
 if (currentURL != 'localhost') {
-  console.log(currentURL);
   baseURL = 'https://192.168.0.212:8443/';
 }
 
@@ -30,10 +29,23 @@ instance.interceptors.request.use(
   },
 );
 
+instance.interceptors.response.use(
+  (response) => response,
+
+  (error) => {
+    if (error.response.status === 401 || error.response.status === 403) {
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  },
+);
+
 axiosRetry(instance, {
   retries: 0,
   retryDelay: (retryCount) => {
-    return retryCount * 2000; // Ritardo esponenziale (2s, 4s, 6s, ...)
+    return retryCount * 2000;
   },
   retryCondition: (error) => {
     return !error.response || error.response.status >= 500;

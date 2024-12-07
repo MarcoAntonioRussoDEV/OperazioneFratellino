@@ -17,6 +17,7 @@ const SimpleInput = ({
   type = 'text',
   children,
   disabled,
+  ...props
 }) => {
   const tc = useTranslateAndCapitalize();
   return (
@@ -28,7 +29,12 @@ const SimpleInput = ({
           <FormLabel>{tc(label)}</FormLabel>
           <FormControl>
             <div className="flex gap-2 items-center">
-              <Input type={type} {...register(`${name}`)} disabled={disabled} />
+              <Input
+                type={type}
+                {...register(`${name}`)}
+                disabled={disabled}
+                {...props}
+              />
               {children}
             </div>
           </FormControl>

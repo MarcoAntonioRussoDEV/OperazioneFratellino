@@ -158,3 +158,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+.qr-code-container:hover .qr-code {
+  opacity: 35%;
+  transition: all 80ms linear;
+}
+
+.qr-code-container:hover .qr-code-download-button {
+  opacity: 100%;
+  transition: all 80ms linear;
+}
+
+#custom-cancel-button::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}

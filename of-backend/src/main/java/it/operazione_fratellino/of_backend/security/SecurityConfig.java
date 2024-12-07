@@ -73,9 +73,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+//                    .requestMatchers("/api/products/delete/*").hasRole("ADMIN")
                     .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-//                    .anyRequest().authenticated()
-                    .anyRequest().permitAll()
+                    .anyRequest().authenticated()
+//                    .anyRequest().permitAll()
                 )
                 .sessionManagement(session->session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
         return http.build();

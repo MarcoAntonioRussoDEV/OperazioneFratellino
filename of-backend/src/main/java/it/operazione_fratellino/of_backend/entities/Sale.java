@@ -8,14 +8,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "sells")
-public class Sell {
+@Table(name = "sales")
+public class Sale {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,23 +26,20 @@ public class Sell {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "product_code", referencedColumnName = "code")
-    private Product product;
 
-    @NotNull
-    private Integer quantity;
-
-    @NotNull
     private Double total_price;
 
-    @NotNull
-    private Date created_at;
+    private Double profit;
+
+    private Date createdAt;
+
+    @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL)
+    private List<ProductSale> productSale;
+
 
     @PrePersist
     private void defaultsValues(){
-        this.total_price = product.getSelling_price() * this.quantity;
-        this.created_at = new Date();
+        this.createdAt = new Date();
     }
 }
 

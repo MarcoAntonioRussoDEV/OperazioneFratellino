@@ -19,13 +19,13 @@ public class ProductDTO {
     private String code;
     private String name;
     private String description;
-    private Double purchase_price;
-    private Double selling_price;
+    private Double purchasePrice;
+    private Double sellingPrice;
     private Integer category;
     private Integer stock;
     private List<ProductAttributesDTO> attributes;
 //    private Boolean is_deleted;
-    private Date created_at;
+    private Date createdAt;
     private String image;
 
 }

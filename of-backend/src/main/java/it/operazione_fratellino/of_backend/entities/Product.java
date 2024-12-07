@@ -39,10 +39,12 @@ public class Product {
     private String description;
 
     @NotNull(message = "il campo non può essere vuoto")
-    private Double purchase_price;
+    @Column(name = "purchase_price")
+    private Double purchasePrice;
 
     @NotNull(message = "il campo non può essere vuoto")
-    private Double selling_price;
+    @Column(name = "selling_price")
+    private Double sellingPrice;
 
     private Boolean is_deleted;
 
@@ -53,19 +55,20 @@ public class Product {
 
     private Integer stock;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ProductAttributes> productAttributes;
 
-    @OneToMany(mappedBy = "id", fetch = FetchType.LAZY)
-    private List<Sell> sells;
 
-    private Date created_at;
+    @Column(name = "created_at")
+    private Date createdAt;
 
     private String image;
 
+    @ManyToMany(mappedBy = "product")
+    private List<ProductSale> productSale;
+
     @PrePersist
     private void defaultsValues(){
-        this.stock = 1;
         this.is_deleted = false;
     }
 

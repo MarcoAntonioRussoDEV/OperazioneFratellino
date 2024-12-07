@@ -30,6 +30,7 @@ public class AuthController {
     private UserConverter userConverter;
 
 
+
     @PostMapping("/register")
     public String register(@RequestBody User user) {
         User existingUser = userService.findByEmail(user.getEmail());
@@ -53,7 +54,7 @@ public class AuthController {
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
             session.setAttribute("user", user.getEmail());
             System.out.println("User authenticated: " + authentication.getName());
-            // Verifica manuale dell'autenticazione
+
             Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
             System.out.println("Current Authentication: " + currentAuth.isAuthenticated());
             return "Login successful";

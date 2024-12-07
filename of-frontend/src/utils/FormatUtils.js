@@ -48,3 +48,33 @@ export const usernameInitials = (username) => {
 export const toHSL = (percentages) => {
   return `hsl(${percentages})`;
 };
+
+export const dateRangeResolver = (date, locale) => {
+  return new Date(date).toLocaleString(locale, {
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
+export const monthsRangeResolver = (from, to) => {
+  const splitFrom = from.split(' ');
+  const splitTo = to.split(' ');
+  if (splitFrom[0] === splitTo[0] && splitFrom[1] === splitTo[1]) {
+    return `${capitalize(splitFrom[0])} ${capitalize(splitFrom[1])}`;
+  } else if (splitFrom[1] === splitTo[1]) {
+    return `${capitalize(splitFrom[0])} - ${capitalize(
+      splitTo[0],
+    )} ${capitalize(splitFrom[1])}`;
+  } else {
+    return `${capitalize(from)} - ${capitalize(to)}`;
+  }
+};
+
+export const setCurrentMonth = () => {
+  const firstCurrentMonth = new Date();
+  firstCurrentMonth.setDate(1);
+  return {
+    from: firstCurrentMonth,
+    to: new Date(),
+  };
+};

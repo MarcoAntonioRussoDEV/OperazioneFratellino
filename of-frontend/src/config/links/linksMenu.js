@@ -55,11 +55,18 @@ export const linksMenu = {
   },
 };
 
-export const sellsMenu = {
-  sell: {
-    path: '/sell',
+export const salesMenu = {
+  sale: {
+    path: '/sale/create',
     icon: 'ShoppingCart',
     gender: 'plural',
+    subPath: {
+      all: { path: '/sale', icon: ALL_ICON, gender: 'female' },
+      create: {
+        path: 'sale/create',
+        icon: CREATE_ICON,
+      },
+    },
   },
 };
 

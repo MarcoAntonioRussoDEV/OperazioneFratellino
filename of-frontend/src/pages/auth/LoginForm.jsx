@@ -6,6 +6,7 @@ import { getAuthUser } from '@/redux/userSlice';
 import { Input } from '@/components/ui/input';
 import { Label } from '@radix-ui/react-label';
 import { Button } from '@/components/ui/button';
+import { AUTH_DATA, BASE_URL } from '@/config/links/urls';
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,12 +18,14 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/auth/login', {
+      const response = await axios.post(AUTH_DATA.login, {
         email,
         password,
       });
+      console.log(response.data);
       const { jwt } = response.data;
       localStorage.setItem('token', jwt);
+      localStorage.setItem('isAuthenticated', true);
       dispatch(getAuthUser());
       setMessage('Login successful');
     } catch (error) {
@@ -32,12 +35,11 @@ const LoginForm = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/products');
+      navigate('/');
     }
   }, [isAuthenticated, navigate]);
   return (
     <>
-      <img className="w-1/4 mx-auto" src="LOGO.png" alt="logo" />
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-5 w-1/4 items-center mx-auto"

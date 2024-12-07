@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import productReducer from './productSlice';
 import categoryReducer from './categorySlice';
 import attributeReducer from './attributesSlice';
-import sellsReducer from './sellsSlice';
+import salesReducer from './salesSlice';
 import productAttributesReducer from './productAttributesSlice';
 import userReducer from './userSlice';
 import sidebarReducer from './sidebarSlice';
@@ -16,7 +16,7 @@ export const store = configureStore({
     categories: categoryReducer,
     attributes: attributeReducer,
     productAttributes: productAttributesReducer,
-    sells: sellsReducer,
+    sales: salesReducer,
     sidebar: sidebarReducer,
     theme: themeReducer,
     cart: cartReducer,

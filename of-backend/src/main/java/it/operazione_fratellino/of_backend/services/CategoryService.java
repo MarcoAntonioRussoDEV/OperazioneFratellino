@@ -13,5 +13,6 @@ public interface CategoryService {
     ResponseEntity<String> save(Category category);
     Category findByCode(String code);
     Category findByName(String name);
+    ResponseEntity<String> delete(Category category);
 
 }

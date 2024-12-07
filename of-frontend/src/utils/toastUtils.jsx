@@ -7,18 +7,25 @@ const STATUS = {
   LOADING: 'loading',
   GENERIC_ERROR: 'generic error',
   WARNING: 'warning',
+  CREATED: 'created',
+  DELETED: 'deleted',
 };
 
 export default function iconToast(status, response) {
-  //TODO STATUS NOT DEFINED COLOR YELLOW
-
   if (response === STATUS.GENERIC_ERROR) {
     status = STATUS.WARNINGN;
   }
-
   let icon;
   switch (status) {
     case STATUS.SUCCESS: {
+      icon = <BadgeCheck />;
+      break;
+    }
+    case STATUS.CREATED: {
+      icon = <BadgeCheck />;
+      break;
+    }
+    case STATUS.DELETED: {
       icon = <BadgeCheck />;
       break;
     }

@@ -54,7 +54,7 @@ const CategoryForm = () => {
   } = methods;
 
   useEffect(() => {
-    if (categoriesStatus === 'success' || categoriesStatus === 'failed') {
+    if (categoriesStatus === 'created' || categoriesStatus === 'failed') {
       const currentToast = toast(iconToast(categoriesStatus, t(itemResponse)));
       const timer = setTimeout(() => {
         dispatch(reset());
@@ -63,7 +63,6 @@ const CategoryForm = () => {
       return () => {
         clearTimeout(timer);
         currentToast.dismiss();
-        dispatch(reset());
         reset();
       };
     }

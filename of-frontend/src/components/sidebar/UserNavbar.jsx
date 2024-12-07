@@ -56,6 +56,7 @@ const UserNavbar = () => {
   const handleLogout = () => {
     dispatch(logoutUser());
     dispatch(resetStatus());
+    localStorage.setItem('isAuthenticated', false);
     navigate('/login');
   };
 

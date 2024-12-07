@@ -91,6 +91,7 @@ const ProductForm = () => {
     getFieldState,
     reset,
     setValue,
+    getValues,
     formState: { isValid, errors },
   } = methods;
 
@@ -144,23 +145,19 @@ const ProductForm = () => {
   }, [setValue, selectedCategoryCode, newProductCode]);
 
   useEffect(() => {
-    if (productsStatus === 'success' || productsStatus === 'failed') {
+    if (productsStatus === 'created' || productsStatus === 'failed') {
       console.log(productsStatus);
       const currentToast = toast(
         iconToast(productsStatus, tc(productsResponse)),
       );
-      const timer = setTimeout(() => {
-        dispatch(resetStatus());
-      }, 6000);
-      reset();
+      dispatch(resetStatus());
+      reset(PRODUCT.defaultValues);
       return () => {
-        clearTimeout(timer);
-        currentToast.dismiss();
+        // currentToast.dismiss();
         dispatch(resetStatus());
-        reset();
       };
     }
-  }, [productsStatus, productsError, productsResponse, toast, dispatch]);
+  }, [productsStatus]);
 
   /!* Methods  */;
   const fetchAll = () => {
@@ -184,7 +181,8 @@ const ProductForm = () => {
   };
 
   const onSubmit = async (data) => {
-    console.log(data);
+    console.log('Prodotto creato: ', data);
+
     const formData = new FormData();
     formData.append('image', data.image[0]);
     delete data.image;
@@ -212,13 +210,13 @@ const ProductForm = () => {
         <EnhancedSimpleInput name="code" label="code" disabled />
         <EnhancedSimpleInput name="name" label="name" />
         <EnhancedSimpleInput
-          name="purchase_price"
-          label="purchase_price"
+          name="purchasePrice"
+          label="purchasePrice"
           type="number"
         />
         <EnhancedSimpleInput
-          name="selling_price"
-          label="selling_price"
+          name="sellingPrice"
+          label="sellingPrice"
           type="number"
         />
         <EnhancedSimpleInput name="stock" label="stock" type="number" />

@@ -11,11 +11,19 @@ import { axios } from '../../config/axios/axiosConfig';
 import resolveEntityURLS from '../../config/links/urls';
 import { Spinner } from '../ui/spinner.jsx';
 import { components } from '@/config/entity/entities.js';
+import EAVDropdown from './EAVDropdown.jsx';
+import { Trash2 } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Drawer, DrawerTrigger } from '../ui/drawer.jsx';
+import { Button } from '../ui/button.jsx';
+import ImageDrawer from './ImageDrawer.jsx';
 
-const CustomRow = ({ item, entity }) => {
+const CustomRow = ({ item, entity, deleteItem }) => {
   const tc = useTranslateAndCapitalize();
   const [formattedDates, setFormattedDates] = useState({});
   const [MTOdata, setMTOdata] = useState('');
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
 
   const formatDate = async (date) => {
     const locale = await loadLocale(i18n.language);
@@ -45,123 +53,130 @@ const CustomRow = ({ item, entity }) => {
   };
   return (
     <TableRow>
-      {Object.entries(entity.fields).map(([field, fieldSettings]) => {
-        if (!fieldSettings.foreignKey && fieldSettings.type === 'date') {
-          return (
-            <TableCell key={field} className="text-left">
-              {formattedDates[field] || <Spinner size="sm" />}
-            </TableCell>
-          );
-        } else if (
-          !fieldSettings.foreignKey &&
-          fieldSettings.type === 'image' &&
-          item[field]
-        ) {
-          return (
-            <TableCell key={field} className="text-left">
-              <img
-                src={item[field]}
-                alt="product-image"
-                className="rounded-lg"
-              />
-            </TableCell>
-          );
-        } else if (
-          !fieldSettings.foreignKey &&
-          fieldSettings.type === 'component'
-        ) {
-          const Component = components[item[field]];
-          return (
-            <TableCell key={field} className="text-left">
-              <Component
-                value={item[fieldSettings.props.value]}
-                size={fieldSettings.props.size}
-              />
-            </TableCell>
-          );
-        } else if (fieldSettings.foreignKey === 'OTM') {
-          return (
-            <TableCell key={field} className="text-left">
-              <OTMDropdown
-                className="text-left"
-                relateEntity={item[field]}
-                dropDownName={field}
-                relateDisplayField={fieldSettings.relateDisplayField}
-              />
-            </TableCell>
-          );
-        } else if (fieldSettings.foreignKey === 'MTM') {
-          return (
-            <TableCell key={field} className="text-left">
-              <MTMDropdown
-                className="text-left"
-                relateEntity={item[field]}
-                dropDownName={field}
-                relateDisplayField={fieldSettings.relateDisplayField}
-                relateDisplayValue={fieldSettings.relateDisplayValue}
-              />
-            </TableCell>
-          );
-        } else if (fieldSettings.foreignKey === 'MTO') {
-          MTOFetch(
-            fieldSettings.relateFetchField,
-            fieldSettings.relateDisplayField,
-            field,
-            item[field],
-          );
-          return (
-            <TableCell key={field} className="text-left">
-              {MTOdata}
-            </TableCell>
-          );
-        } else {
-          return (
-            <TableCell key={item[field]} className="text-left">
-              {tc(item[field])}
-            </TableCell>
-          );
-        }
-      })}
+      {Object.entries(entity.fields)
+        .filter((el) => el[1].isTableHead)
+        .map(([field, fieldSettings]) => {
+          /!* DATA */;
+          if (!fieldSettings.foreignKey && fieldSettings.type === 'date') {
+            return (
+              <TableCell key={field} className="text-left">
+                {formattedDates[field] || <Spinner size="sm" />}
+              </TableCell>
+            );
+            /!* IMAGE  */;
+          } else if (
+            !fieldSettings.foreignKey &&
+            fieldSettings.type === 'image' &&
+            item[field]
+          ) {
+            return (
+              <Drawer key={field}>
+                <DrawerTrigger asChild>
+                  <TableCell className="text-left">
+                    <div className="w-14 h-14 cursor-pointer hover:scale-[1.1]">
+                      <img
+                        src={item[field]}
+                        alt="product-image"
+                        className="rounded-lg object-cover h-full w-full"
+                      />
+                    </div>
+                  </TableCell>
+                </DrawerTrigger>
+                <ImageDrawer
+                  title={item[fieldSettings.drawer.title]}
+                  description={item[fieldSettings.drawer.description]}
+                  imgSrc={item[field]}
+                />
+              </Drawer>
+            );
+            /!* COMPONENT  */;
+          } else if (
+            !fieldSettings.foreignKey &&
+            fieldSettings.type === 'component'
+          ) {
+            const Component = components[item[field]];
+            return (
+              <TableCell key={field} className="text-left">
+                <Component
+                  value={item[fieldSettings.props.value]}
+                  size={fieldSettings.props.size}
+                />
+              </TableCell>
+            );
+            /!* OneToMany  */;
+          } else if (fieldSettings.foreignKey === 'OTM') {
+            return (
+              <TableCell key={field} className="text-left">
+                <OTMDropdown
+                  className="text-left"
+                  relateEntity={item[field]}
+                  dropDownName={field}
+                  relateDisplayField={fieldSettings.relateDisplayField}
+                />
+              </TableCell>
+            );
+            /!* ManyToMany  */;
+          } else if (fieldSettings.foreignKey === 'MTM') {
+            return (
+              <TableCell key={field} className="text-left">
+                <MTMDropdown
+                  className="text-left"
+                  relateEntity={item[field]}
+                  dropDownName={field}
+                  relateDisplayField={fieldSettings.relateDisplayField}
+                  relateDisplayValue={fieldSettings.relateDisplayValue}
+                />
+              </TableCell>
+            );
+            /!* EntityAttributeValue  */;
+          } else if (fieldSettings.foreignKey === 'EAV') {
+            return (
+              <TableCell key={field} className="text-left">
+                <EAVDropdown
+                  className="text-left"
+                  relateEntity={item[field]}
+                  dropDownName={field}
+                  relateDisplayField={fieldSettings.relateDisplayField}
+                  relateDisplayValue={fieldSettings.relateDisplayValue}
+                />
+              </TableCell>
+            );
+            /!* ManyToOne  */;
+          } else if (fieldSettings.foreignKey === 'MTO') {
+            MTOFetch(
+              fieldSettings.relateFetchField,
+              fieldSettings.relateDisplayField,
+              field,
+              item[field],
+            );
+            return (
+              <TableCell key={field} className="text-left">
+                {MTOdata}
+              </TableCell>
+            );
+            /!* Default  */;
+          } else {
+            return (
+              <>
+                <TableCell key={item[field]} className="text-left">
+                  {tc(item[field])} {fieldSettings.currency ?? ''}
+                </TableCell>
+              </>
+            );
+          }
+        })}
 
-      {/* {Object.entries(item).map(([field, value]) => {
-        console.log();
-        if (
-          (typeof value === 'string' || typeof value === 'number') &&
-          entity.fields[field]?.type != 'date'
-        ) {
-          return (
-            <TableCell key={field} className="text-left">
-              {capitalize(t(value))}
-            </TableCell>
-          );
-        } else if (
-          entity.fields[field]?.type === 'string' &&
-          typeof value === 'object'
-        ) {
-          return (
-            <TableCell key={field} className="text-left">
-              {capitalize(t(value[entity.fields[field].relateDisplayField]))}
-            </TableCell>
-          );
-        } else if (entity.fields[field]?.type === 'date') {
-          return (
-            <TableCell key={field} className="text-left">
-              {formattedDates[field] || <Spinner size="sm" />}
-            </TableCell>
-          );
-        } else {
-          return (
-            <TableCell key={value.id} className="text-left">
-              <CustomTableDropdown
-                relateDisplayField={entity.fields[field]?.relateDisplayField}
-                obj={value}
-                dropDownName={field}
-                entity={entity}
-              />
-            </TableCell>
-          );
-        }
-      })} */}
+      {/* DELETE BUTTON  */}
+      {user.role == 'ADMIN' && (
+        <TableCell className="text-left">
+          <Trash2
+            onClick={() => {
+              dispatch(deleteItem(item[entity.deleteKey]));
+            }}
+            className="text-destructive cursor-pointer"
+          />
+        </TableCell>
+      )}
     </TableRow>
   );
 };

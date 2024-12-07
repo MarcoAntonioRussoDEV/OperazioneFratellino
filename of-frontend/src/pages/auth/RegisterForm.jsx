@@ -20,7 +20,7 @@ const RegisterForm = () => {
       password,
       city: { id: 1 }, // Imposta l'ID predefinito per la città
       role: { id: 1 }, // Imposta l'ID predefinito per il ruolo
-      created_at: new Date(),
+      createdAt: new Date(),
     });
     try {
       const response = await axios.post('/api/auth/register', {
@@ -29,7 +29,7 @@ const RegisterForm = () => {
         password,
         city: { id: 1 }, // Imposta l'ID predefinito per la città
         role: { id: 1 }, // Imposta l'ID predefinito per il ruolo
-        created_at: new Date(),
+        createdAt: new Date(),
       });
       setMessage('Registration successful!');
     } catch (error) {

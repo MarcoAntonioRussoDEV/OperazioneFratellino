@@ -66,4 +66,5 @@ public class AttributeServiceImpl implements AttributeService {
         Attribute savedAttribute = attributeRepository.save(attribute);
         return attributeRepository.findById(savedAttribute.getId()).orElseThrow(()->new RuntimeException("Attribute just saved not found"));
     }
+
 }

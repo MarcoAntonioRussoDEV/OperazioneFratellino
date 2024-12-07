@@ -27,6 +27,7 @@ export const createAttribute = createAsyncThunk(
 
 const initialState = {
   attributes: [],
+  allAttributes: [],
   status: 'idle',
   error: null,
   response: null,
@@ -43,6 +44,36 @@ export const attributeSlice = createSlice({
       state.response = null;
       state.retryAttempt = 0;
     },
+    orderAttributes(state, { payload }) {
+      const { column, direction } = payload;
+      state.attributes = state.attributes.sort((a, b) => {
+        if (typeof a[column] === 'number' && typeof b[column] === 'number') {
+          return direction === 'DESC'
+            ? b[column] - a[column]
+            : a[column] - b[column];
+        }
+        if (column === 'createdAt') {
+          const dateA = new Date(a[column]);
+          const dateB = new Date(b[column]);
+          return direction === 'DESC' ? dateB - dateA : dateA - dateB;
+        }
+        const stringA = String(a[column]).toLowerCase();
+        const stringB = String(b[column]).toLowerCase();
+        if (direction === 'DESC') {
+          return stringB.localeCompare(stringA);
+        } else {
+          return stringA.localeCompare(stringB);
+        }
+      });
+    },
+    filterAttribute(state, { payload }) {
+      state.attributes = state.allAttributes.filter((attribute) => {
+        return Object.entries(attribute).some(([_, value]) => {
+          const stringValue = String(value).toLowerCase();
+          return stringValue.includes(String(payload).toLowerCase());
+        });
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -53,6 +84,7 @@ export const attributeSlice = createSlice({
       .addCase(getAllAttributes.fulfilled, (state, action) => {
         state.status = 'success';
         state.attributes = action.payload;
+        state.allAttributes = action.payload;
       })
       .addCase(getAllAttributes.rejected, (state, action) => {
         state.status = 'failed';
@@ -73,5 +105,6 @@ export const attributeSlice = createSlice({
   },
 });
 
-export const { resetStatus } = attributeSlice.actions;
+export const { resetStatus, orderAttributes, filterAttribute } =
+  attributeSlice.actions;
 export default attributeSlice.reducer;

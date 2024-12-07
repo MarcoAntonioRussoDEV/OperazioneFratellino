@@ -3,12 +3,13 @@ import axios from 'axios';
 export const BASE_URL = 'https://localhost:8443/api/';
 
 const PRODUCTS_DATA = {
-  all: BASE_URL + 'products/all',
+  all: BASE_URL + 'products/all?',
   byId: BASE_URL + 'products/by-id/',
   byCode: BASE_URL + 'products/by-code/',
   create: BASE_URL + 'products/create',
   byCategoryCode: BASE_URL + 'products/by-category-code/',
   getImage: BASE_URL + 'products/get-image/',
+  delete: BASE_URL + 'products/delete/',
 };
 
 const CATEGORIES_DATA = {
@@ -16,6 +17,7 @@ const CATEGORIES_DATA = {
   byId: BASE_URL + 'categories/by-id/',
   byCode: BASE_URL + 'categories/by-code/',
   create: BASE_URL + 'categories/create',
+  delete: BASE_URL + 'categories/delete/',
 };
 
 const ATTRIBUTES_DATA = {
@@ -30,11 +32,14 @@ const PRODUCT_ATTRIBUTES_DATA = {
 
 const AUTH_DATA = {
   login: BASE_URL + 'auth/login',
+  logout: BASE_URL + 'auth/logout',
+  getUser: BASE_URL + 'auth/me',
 };
 
-const SELLS_DATA = {
-  all: BASE_URL + 'sells/all',
-  create: BASE_URL + 'sells/create',
+const SALES_DATA = {
+  all: BASE_URL + 'sales/all',
+  create: BASE_URL + 'sales/create',
+  delete: BASE_URL + 'sales/delete/',
 };
 
 const USER_DATA = {
@@ -42,6 +47,7 @@ const USER_DATA = {
   create: BASE_URL + 'user/create',
   setAvatar: BASE_URL + 'user/set-avatar',
   getAvatar: BASE_URL + 'user/get-avatar/',
+  byEmail: BASE_URL + 'user/by-email/',
 };
 
 export {
@@ -50,7 +56,7 @@ export {
   ATTRIBUTES_DATA,
   PRODUCT_ATTRIBUTES_DATA,
   AUTH_DATA,
-  SELLS_DATA,
+  SALES_DATA,
   USER_DATA,
 };
 
@@ -76,6 +82,8 @@ export default function resolveEntityURLS(entity) {
       return ATTRIBUTES_DATA;
     case 'productAttributes':
       return PRODUCT_ATTRIBUTES_DATA;
+    case 'user':
+      return USER_DATA;
     default:
       return BASE_URL;
   }

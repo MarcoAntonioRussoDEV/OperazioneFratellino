@@ -31,12 +31,9 @@ const OTMDropdown = ({
   const handleOpen = () => {
     chevronRef.current.classList.toggle('rotate-[-180deg]');
   };
-
   const sortedRelateEntity = [...relateEntity].sort((a, b) => a.id - b.id);
 
-  const handleShowRelate = (id) => {
-    console.log(id);
-  };
+  const handleShowRelate = (id) => {};
   return (
     <>
       <DropdownMenu onOpenChange={handleOpen}>
@@ -56,9 +53,9 @@ const OTMDropdown = ({
                 key={key}
                 onClick={() => handleShowRelate(value.id)}
               >
-                {tc(value[relateDisplayField])}
+                {tc(value)}
                 <DropdownMenuShortcut>
-                  {tc(value[relateDisplayValue])}
+                  <ExternalLink />
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
             );
@@ -77,3 +74,5 @@ OTMDropdown.propTypes = {
 };
 
 export default OTMDropdown;
+
+//TODO Rifattorizzare componente per dividere l'effettivo MTM dal multi MTM

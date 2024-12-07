@@ -15,6 +15,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,23 +50,29 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getAll() {
         return productRepository.findAll();
     }
+    @Override
+    public List<Product> getAll(String column, String direction) {
+        Sort sort = Sort.by(Sort.Direction.fromString(direction), column);
+        return productRepository.findAll(sort);
+    }
+
 
     @Override
     public Product findById(Integer id) {
         Optional<Product> product = productRepository.findById(id);
-        if(product.isPresent()){
+        if (product.isPresent()) {
             return product.get();
-        }else{
+        } else {
             throw new RuntimeException(("Product not found"));
         }
     }
 
     @Override
     public Product findByCode(String code) {
-        Optional<Product> product =  productRepository.findByCode(code);
-        if(product.isPresent()){
+        Optional<Product> product = productRepository.findByCode(code);
+        if (product.isPresent()) {
             return product.get();
-        }else{
+        } else {
             throw new RuntimeException(("Product not found"));
         }
 
@@ -72,15 +80,15 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseEntity<String> save(Product product) {
-        product.setCreated_at(new Date());
+        product.setCreatedAt(new Date());
 
         try {
             productRepository.save(product);
             log.info("LOG: Creato prodotto: " + product.getName());
             return new ResponseEntity<String>("Prodotto salvato con successo", HttpStatus.CREATED);
-        }catch(Exception e){
+        } catch (Exception e) {
             log.info("LOG: Errore creazione prodotto: " + product.getName());
-            return exceptionHandlerService.handleException( e, product.getName());
+            return exceptionHandlerService.handleException(e, product.getName());
         }
     }
 
@@ -93,11 +101,11 @@ public class ProductServiceImpl implements ProductService {
             product.setCode(productRequest.getCode());
             product.setName(productRequest.getName());
             product.setDescription(productRequest.getDescription());
-            product.setPurchase_price(productRequest.getPurchase_price());
-            product.setSelling_price(productRequest.getSelling_price());
+            product.setPurchasePrice(productRequest.getPurchasePrice());
+            product.setSellingPrice(productRequest.getSellingPrice());
             product.setStock(productRequest.getStock());
-            product.setCreated_at(new Date());
-            if(image != null && !image.isEmpty()){
+            product.setCreatedAt(new Date());
+            if (image != null && !image.isEmpty()) {
                 product.setImage(fileStoreService.saveImage(image, productRequest.getCode()));
             }
 
@@ -107,8 +115,8 @@ public class ProductServiceImpl implements ProductService {
 
             if (productRequest.getExistingProductAttributes() != null) {
                 for (RequestProductAttributesDTO existingAttr : productRequest.getExistingProductAttributes()) {
-                    Attribute attribute = attributeRepository.findByName(existingAttr.getAttributeName())
-                            .orElseThrow(() -> new RuntimeException("Attribute not found: " + existingAttr.getAttributeName()));
+                    Attribute attribute =
+                            attributeRepository.findByName(existingAttr.getAttributeName()).orElseThrow(() -> new RuntimeException("Attribute not found: " + existingAttr.getAttributeName()));
 
                     ProductAttributes productAttribute = new ProductAttributes();
                     productAttribute.setProduct(savedProduct);
@@ -147,5 +155,15 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.findByCategory(categoryRepository.findByCode(categoryCode));
     }
 
-
+    @Override
+    public ResponseEntity<String> delete(Product product) {
+        try {
+            productRepository.delete(product);
+            return new ResponseEntity<>("prodotto eliminato con successo", HttpStatus.OK);
+        } catch (DataIntegrityViolationException e) {
+            return new ResponseEntity<>("Errore: il prodotto è associata ad altri dati", HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Errore interno del server", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

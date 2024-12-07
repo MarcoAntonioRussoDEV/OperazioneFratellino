@@ -10,9 +10,12 @@ import java.util.Optional;
 
 public interface ProductService {
     List<Product> getAll();
+    List<Product> getAll(String column, String direction);
+
     Product findById(Integer id);
     Product findByCode(String code);
     ResponseEntity<String> save(Product product);
+    ResponseEntity<String> delete(Product product);
 
     ResponseEntity<String> saveProductWithAttributes(RequestProductDTO productRequest, MultipartFile image);
 

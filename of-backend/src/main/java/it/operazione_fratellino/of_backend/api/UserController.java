@@ -1,9 +1,11 @@
 package it.operazione_fratellino.of_backend.api;
 
+import it.operazione_fratellino.of_backend.DTOs.UserDTO;
 import it.operazione_fratellino.of_backend.entities.User;
 import it.operazione_fratellino.of_backend.repositories.UserRepository;
 import it.operazione_fratellino.of_backend.services.UserService;
 import it.operazione_fratellino.of_backend.services.implement.FileStoreService;
+import it.operazione_fratellino.of_backend.utils.DTOConverters.UserConverter;
 import jakarta.servlet.annotation.MultipartConfig;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,8 @@ public class UserController {
     UserService userService;
     @Autowired
     Environment env;
+    @Autowired
+    UserConverter userConverter;
 
 
     @PostMapping("/set-avatar")
@@ -69,5 +73,10 @@ public class UserController {
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping("/by-email/{email}")
+    public UserDTO getUserByEmail(@PathVariable String email){
+        return userConverter.toDTO(userRepository.findByEmail(email).orElseThrow());
     }
 }

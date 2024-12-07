@@ -38,32 +38,21 @@ const IconMenuItem = ({
   const IconComponent = icons[icon];
   const tc = useTranslateAndCapitalize();
   const { isOpen: sidebarIsOpen } = useSelector((state) => state.sidebar);
-
   if (!subPath || !sidebarIsOpen) {
     //TODO
     return (
-      <ContextMenu>
-        <Link to={path}>
-          <SidebarMenuItem>
-            <ContextMenuTrigger>
-              <SidebarMenuButton>
-                {providedImage === 'react-icon' ? (
-                  <IconComponent />
-                ) : (
-                  <img src={icon} alt="" className="w-7 h-auto" />
-                )}
-                <span>{tc(name, gender)}</span>
-              </SidebarMenuButton>
-            </ContextMenuTrigger>
-          </SidebarMenuItem>
-        </Link>
-        <ContextMenuContent>
-          <ContextMenuItem>{name}</ContextMenuItem>
-          <ContextMenuItem>Billing</ContextMenuItem>
-          <ContextMenuItem>Team</ContextMenuItem>
-          <ContextMenuItem>Subscription</ContextMenuItem>
-        </ContextMenuContent>
-      </ContextMenu>
+      <Link to={path}>
+        <SidebarMenuItem>
+          <SidebarMenuButton>
+            {providedImage === 'react-icon' ? (
+              <IconComponent />
+            ) : (
+              <img src={icon} alt="" className="w-7 h-auto" />
+            )}
+            <span>{tc(name, gender)}</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </Link>
     );
   } else {
     return (
@@ -79,7 +68,7 @@ const IconMenuItem = ({
               ) : (
                 <img src={icon} alt="" className="w-7 h-auto" />
               )}
-              <span>{tc(name)}</span>
+              <span>{tc(name, gender)}</span>
               <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
             </SidebarMenuButton>
           </CollapsibleTrigger>

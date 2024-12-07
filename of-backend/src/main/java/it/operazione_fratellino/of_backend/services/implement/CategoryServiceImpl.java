@@ -38,6 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
     public Category findByCode(String code) {
         return categoryRepository.findByCode(code);
     }
+
     @Override
     public Category findByName(String name) {
         return categoryRepository.findByName(name);
@@ -49,9 +50,24 @@ public class CategoryServiceImpl implements CategoryService {
             categoryRepository.save(category);
             log.info("LOG: Creata categoria: " + category.getName());
             return new ResponseEntity<String>("Categoria salvata con successo", HttpStatus.CREATED);
-        }catch(Exception e){
-                log.info("LOG: Errore creazione categoria: " + category.getName());
-                return exceptionHandlerService.handleException( e, category.getName());
-            }
+        } catch (Exception e) {
+            log.info("LOG: Errore creazione categoria: " + category.getName());
+            return exceptionHandlerService.handleException(e, category.getName());
         }
     }
+
+
+    @Override
+    public ResponseEntity<String> delete(Category category) {
+        try {
+            categoryRepository.delete(category);
+            return new ResponseEntity<>("categoria eliminata con successo", HttpStatus.OK);
+        } catch (DataIntegrityViolationException e) {
+            return new ResponseEntity<>("Errore: La categoria è associata a dei prodotti", HttpStatus.CONFLICT);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Errore interno del server", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+}

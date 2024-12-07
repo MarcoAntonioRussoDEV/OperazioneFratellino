@@ -39,12 +39,12 @@ public class ProductConverter {
         dto.setCode(product.getCode());
         dto.setName(product.getName());
         dto.setDescription(product.getDescription());
-        dto.setPurchase_price(product.getPurchase_price());
-        dto.setSelling_price(product.getSelling_price());
+        dto.setPurchasePrice(product.getPurchasePrice());
+        dto.setSellingPrice(product.getSellingPrice());
         dto.setCategory(product.getCategory() != null ? product.getCategory().getId() : null);
         dto.setStock(product.getStock());
 //        dto.setIs_deleted(product.getIs_deleted());
-        dto.setCreated_at(product.getCreated_at());
+        dto.setCreatedAt(product.getCreatedAt());
         dto.setImage(product.getImage());
         dto.setAttributes(
                 product.getProductAttributes().stream().map(productAttributesConverter::toDTO).toList()
@@ -65,78 +65,15 @@ public class ProductConverter {
         product.setCode(dto.getCode());
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
-        product.setPurchase_price(dto.getSelling_price());
-        product.setSelling_price(dto.getSelling_price());
+        product.setPurchasePrice(dto.getSellingPrice());
+        product.setSellingPrice(dto.getSellingPrice());
         product.setStock(dto.getStock());
 //        product.setIs_deleted(dto.getIs_deleted());
-        product.setCreated_at(dto.getCreated_at());
+        product.setCreatedAt(dto.getCreatedAt());
         product.setImage(dto.getImage());
 
         return product;
     }
-
-//    public ProductDTO toDTOfromRequest(RequestProductDTO request) {
-//        ProductDTO productDTO = new ProductDTO();
-//        productDTO.setCode( request.getCode());
-//        productDTO.setName( request.getName());
-//        productDTO.setDescription(request.getDescription());
-//        productDTO.setPrice(request.getPrice());
-//        productDTO.setCategory(categoryService.findByCode(request.getCategory()).getName());
-//        productDTO.setStock( request.getStock());
-//
-//
-//        return productDTO;
-//    }
-
-
-//    private  Double convertToDouble(Object value) {
-//        if (value instanceof Integer) {
-//            return ((Integer) value).doubleValue();
-//        } else if (value instanceof Double) {
-//            return (Double) value;
-//        } else {
-//            throw new IllegalArgumentException("Invalid type for price: " + value.getClass().getName());
-//        }
-//    }
-
-
-
-
-
-
-//
-//
-//    public ProductDTO resolveRequestToAttributes(RequestProductDTO request, ProductDTO productDTO){
-//        List<ProductAttributesDTO> attributes = convertExistingAttributesToList(request.getExistingProductAttributes(),productDTO);
-////        attributes.putAll(convertListToMap(request.getExistingProductAttributes(), productDTO));
-//        productDTO.setAttributes(attributes);
-//        return productDTO;
-//
-//    }
-
-//
-//    @Transactional
-//    private List<ProductAttributesDTO> convertExistingAttributesToList(List<RequestProductAttributesDTO> requestProductAttributes, ProductDTO productDTO){
-//        List<ProductAttributesDTO> resultList = new ArrayList<>();
-//        for(RequestProductAttributesDTO request : requestProductAttributes){
-//            ProductAttributesDTO productAttributesDTO = new ProductAttributesDTO(request.getAttributeName(), productDTO, request.getAttributeValue());
-//            productAttributesService.save(productAttributesConverter.toEntity(productAttributesDTO));
-//            resultList.add(productAttributesDTO);
-//        }
-//        return resultList;
-//    }
-//
-//    @Transactional
-//    private Map<String,String> convertNewListToMap(List<RequestProductAttributesDTO> requestProductAttributes, ProductDTO productDTO){
-//        Map<String,String> resultMap = new HashMap<>();
-//        for(RequestProductAttributesDTO request : requestProductAttributes){
-//            ProductAttributesDTO productAttributesDTO = new ProductAttributesDTO(request.getAttributeName(), productDTO, request.getAttributeValue());
-////            ProductAttributes pa = productAttributesService.saveAndGet(productAttributesConverter.toEntity(productAttributesDTO));
-////            ProductAttributesDTO paDTO = productAttributesConverter.toDTO(pa);
-//            resultMap.put(productAttributesDTO.getAttribute(),productAttributesDTO.getValue());
-//        }
-//        return resultMap;
-//    }
 
 
 }

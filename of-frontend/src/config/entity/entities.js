@@ -18,7 +18,7 @@ import {
   CATEGORIES_DATA,
   ATTRIBUTES_DATA,
   fetchCategoriesCode,
-  SELLS_DATA,
+  SALES_DATA,
   PRODUCTS_DATA,
 } from '../links/urls';
 import QrCodeGenerator from '@/components/QRCodeGenerator/QrCodeGenerator';
@@ -55,6 +55,7 @@ export const CATEGORY = {
     code: '',
     name: '',
   },
+  deleteKey: 'id',
 };
 export const components = { QrCodeGenerator };
 export const PRODUCT = {
@@ -82,13 +83,15 @@ export const PRODUCT = {
       isFillable: true,
       isTableHead: true,
     },
-    purchase_price: {
+    purchasePrice: {
       isFillable: true,
       isTableHead: true,
+      currency: '€',
     },
-    selling_price: {
+    sellingPrice: {
       isFillable: true,
       isTableHead: true,
+      currency: '€',
     },
     stock: {
       isFillable: true,
@@ -106,9 +109,9 @@ export const PRODUCT = {
       isTableHead: true,
       relateDisplayField: 'attributeName',
       relateDisplayValue: 'value',
-      foreignKey: 'MTM',
+      foreignKey: 'EAV',
     },
-    created_at: {
+    createdAt: {
       isFillable: false,
       isTableHead: true,
       type: 'date',
@@ -117,67 +120,87 @@ export const PRODUCT = {
       isFillable: true,
       isTableHead: true,
       type: 'image',
+      drawer: {
+        title: 'name',
+        description: 'code',
+      },
     },
   },
   store: 'products',
-  formSchema: z.object({
-    code: z.string().readonly(),
-    description: z.string(),
-    purchase_price: z.coerce.number().positive(),
-    selling_price: z.coerce.number().positive(),
-    category: z.string().refine(
-      async (code) => {
-        try {
-          const response = await axios.get(CATEGORIES_DATA.byCode + code);
-          return true;
-        } catch (error) {
-          return false;
-        }
-      },
-      { message: 'categoryNotFound' },
-    ),
-    stock: z.coerce.number().positive(),
+  formSchema: z
+    .object({
+      code: z.string().readonly(),
+      description: z.string(),
+      purchasePrice: z.coerce.number().positive(),
+      sellingPrice: z.coerce.number().positive(),
+      category: z.string().refine(
+        async (code) => {
+          try {
+            const response = await axios.get(CATEGORIES_DATA.byCode + code);
+            return true;
+          } catch (error) {
+            return false;
+          }
+        },
+        { message: 'categoryNotFound' },
+      ),
+      stock: z.coerce.number().positive(),
 
-    name: z.string().min(4, {
-      message: `${'minimum'} 4 ${'characters'}`,
+      name: z.string().min(4, {
+        message: `${'minimum'} 4 ${'characters'}`,
+      }),
+      existingProductAttributes: z
+        .array(
+          z.object({
+            attributeName: z.string().refine(
+              async (name) => {
+                try {
+                  const response = await axios.get(
+                    ATTRIBUTES_DATA.byName + name,
+                  );
+                  return true;
+                } catch (error) {
+                  return false;
+                }
+              },
+              { message: 'attributeNotFound' },
+            ),
+            attributeValue: z.string().min(1),
+          }),
+        )
+        .optional(),
+      newProductAttributes: z
+        .array(
+          z.object({
+            attributeName: z.string(),
+            attributeValue: z.string(),
+          }),
+        )
+        .optional(),
+      image: z.any(),
+    })
+    .superRefine(async (values, context) => {
+      const { purchasePrice, sellingPrice } = values;
+
+      if (purchasePrice >= sellingPrice) {
+        context.addIssue({
+          path: ['sellingPrice'],
+          message:
+            "Il prezzo d'acquisto non può essere superiore al prezzo di vendita",
+        });
+      }
     }),
-    existingProductAttributes: z.array(
-      z.object({
-        attributeName: z.string().refine(
-          async (name) => {
-            try {
-              const response = await axios.get(ATTRIBUTES_DATA.byName + name);
-              return true;
-            } catch (error) {
-              return false;
-            }
-          },
-          { message: 'attributeNotFound' },
-        ),
-        attributeValue: z.string().min(1),
-      }),
-    ),
-    newProductAttributes: z.array(
-      z.object({
-        attributeName: z.string(),
-        attributeValue: z.string(),
-      }),
-    ),
-    image: z.any(),
-  }),
   defaultValues: {
     code: '',
     name: '',
     description: '',
-    purchase_price: null,
-    selling_price: null,
+    purchasePrice: null,
+    sellingPrice: null,
     category: null,
     stock: null,
-    productAttributes: [
-      { id: null, product: null, attribute: null, value: '' },
-    ],
     image: '',
   },
+  deleteKey: 'code',
 };
 
 export const ATTRIBUTE = {
@@ -221,53 +244,91 @@ export const PRODUCT_ATTRIBUTES = {
   },
 };
 
-export const SELLS = {
+export const SALES = {
   fields: {
     id,
-    product_code: {
+    products: {
       isFillable: true,
+      isTableHead: true,
+      relateDisplayField: 'product',
+      relateDisplayValue: 'quantity',
+      foreignKey: 'EAV',
+    },
+    quantity: {
+      isFillable: true,
+      isTableHead: false,
+      type: 'number',
     },
     user: {
       isFillable: false,
       isTableHead: true,
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+      foreignKey: 'MTO',
     },
-    quantity: {
-      isFillable: true,
-      isTableHead: true,
-      type: 'number',
-    },
-    total_price: {
+    sellingPrice: {
       isFillable: false,
       isTableHead: true,
+      currency: '€',
     },
-    created_at: {
+    profit: {
       isFillable: false,
       isTableHead: true,
+      currency: '€',
+    },
+    createdAt: {
+      isFillable: false,
+      isTableHead: true,
+      type: 'date',
     },
   },
-  store: 'sells',
-  formSchema: z.object({
-    product_code: z
-      .string()
-      // .min(7)
-      // .max(7)
-      .refine(
-        async (code) => {
-          try {
-            const response = await axios.get(PRODUCTS_DATA.byCode + code);
-            return true;
-          } catch (error) {
-            return false;
+  store: 'sales',
+  formSchema: z
+    .object({
+      products: z
+        .string()
+        // .min(7)
+        // .max(7)
+        .refine(
+          async (code) => {
+            try {
+              const response = await axios.get(PRODUCTS_DATA.byCode + code);
+              return true;
+            } catch (error) {
+              return false;
+            }
+          },
+          { message: 'productNotFound' },
+        ),
+      quantity: z.coerce.number().positive(),
+    })
+    .superRefine(
+      async (values, context) => {
+        const { products, quantity } = values;
+
+        try {
+          const response = await axios.get(PRODUCTS_DATA.byCode + products);
+          if (quantity > response.data.stock) {
+            context.addIssue({
+              path: ['quantity'],
+              message: 'La quantità richiesta supera la quantità disponibile.',
+            });
           }
-        },
-        { message: 'productNotFound' },
-      ),
-    quantity: z.coerce.number().positive(),
-  }),
+        } catch (error) {
+          context.addIssue({
+            path: ['products'],
+            message: 'Errore nel recupero del prodotto',
+          });
+        }
+      },
+      { message: 'productNotFound' },
+    ),
+
   defaultValues: {
-    product_code: '',
+    products: '',
     quantity: 1,
   },
+  deleteKey: 'id',
 };
 
 export const USER = {
@@ -297,7 +358,7 @@ export const USER = {
       isFillable: true,
       isTableHead: true,
     },
-    created_at: {
+    createdAt: {
       isFillable: true,
       isTableHead: true,
       type: 'data',
@@ -311,7 +372,7 @@ export const USER = {
     // city: '',
     // role: 'USER',
     avatar: '',
-    // created_at: '',
+    // createdAt: '',
   },
   formSchema: z.object({
     avatar: z.any(),

@@ -3,42 +3,56 @@ import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import iconToast from '@/utils/toastUtils';
-import { Spinner } from '@/components/ui/spinner.jsx';
-import { z } from 'zod';
 import { Form } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { SELLS } from '@/config/entity/entities';
+import { SALES } from '@/config/entity/entities';
 import SimpleInput from '@/components/form/SimpleInput';
 import withFormContext from '@/components/HOC/withFormContext';
+import SimpleCombobox from '@/components/form/SimpleCombobox';
 const EnhancedSimpleInput = withFormContext(SimpleInput);
+const EnhancedSimpleCombobox = withFormContext(SimpleCombobox);
 import { Scanner } from '@yudiel/react-qr-scanner';
-import { createSell } from '@/redux/sellsSlice';
 import { ScanQrCode } from 'lucide-react';
-import { addItem, getProductByCode } from '@/redux/cartSlice';
+import { getProductByCode } from '@/redux/cartSlice';
+import { getAllProducts } from '@/redux/productSlice';
 
-const SellForm = () => {
+const SaleForm = () => {
   const { cart } = useSelector((state) => state.cart);
   const { t } = useTranslation();
   const { user } = useSelector((state) => state.user);
-  const [isScan, setIsScan] = useState(true);
+  const [isScan, setIsScan] = useState(false);
   const {
-    sells,
-    status: sellsStatus,
-    error: sellsError,
+    sales,
+    status: salesStatus,
+    error: salesError,
     response: itemResponse,
-  } = useSelector((state) => state.sells);
+  } = useSelector((state) => state.sales);
+  const { products, status: productsStatus } = useSelector(
+    (state) => state.products,
+  );
   const dispatch = useDispatch();
   const { toast } = useToast();
   const tc = useTranslateAndCapitalize();
 
+  useEffect(() => {
+    if (productsStatus === 'idle') {
+      dispatch(getAllProducts())
+        .unwrap()
+        .catch((error) => console.error('Failed to load products:', error));
+    }
+  }, [productsStatus, dispatch]);
+
+  useEffect(() => {
+    console.log('productsStatus: ', productsStatus);
+  }, [productsStatus]);
+
   const methods = useForm({
-    resolver: zodResolver(SELLS.formSchema),
-    defaultValues: SELLS.defaultValues,
+    resolver: zodResolver(SALES.formSchema),
+    defaultValues: SALES.defaultValues,
     mode: 'onChange',
   });
 
@@ -54,8 +68,8 @@ const SellForm = () => {
   } = methods;
 
   useEffect(() => {
-    if (sellsStatus === 'success' || sellsStatus === 'failed') {
-      const currentToast = toast(iconToast(sellsStatus, t(itemResponse)));
+    if (salesStatus === 'created' || salesStatus === 'failed') {
+      const currentToast = toast(iconToast(salesStatus, t(itemResponse)));
       const timer = setTimeout(() => {
         dispatch(reset());
       }, 6000);
@@ -63,18 +77,15 @@ const SellForm = () => {
       return () => {
         clearTimeout(timer);
         currentToast.dismiss();
-        dispatch(reset());
         reset();
       };
     }
-  }, [sellsStatus, sellsError, itemResponse, toast, dispatch]);
+  }, [salesStatus, salesError, itemResponse, toast, dispatch]);
 
   const onSubmit = (data) => {
-    console.log('data: ', data);
-
-    // data = { ...data, user_email: user.email };
+    data = { ...data, user_email: user.email };
     // console.log(data);
-    // dispatch(createSell(data));
+    // dispatch(createSale(data));
     dispatch(getProductByCode(data));
   };
 
@@ -82,12 +93,12 @@ const SellForm = () => {
     // console.log(result);
     // console.log(result[0].rawValue);
     const code = result[0].rawValue;
-    setValue('product_code', code);
-    trigger('product_code');
-    const data = { product_code: code, quantity: 1 };
+    setValue('products', code);
+    trigger('products');
+    const data = { products: code, quantity: 1 };
     dispatch(getProductByCode(data));
 
-    // dispatch(addItem({ product_code: result[0].rawValue, quantity: 1 }));
+    // dispatch(addItem({ products: result[0].rawValue, quantity: 1 }));
     // console.log(cart);
   };
 
@@ -101,21 +112,33 @@ const SellForm = () => {
         <div className="w-1/2  mx-auto mt-10 rounded rounded-xl overflow-hidden">
           {isScan && <Scanner onScan={handleScan} allowMultiple={false} />}
         </div>
-        {Object.entries(SELLS.fields)
-          .filter(([key, value]) => value.isFillable)
-          .map(([key, value]) => {
-            return (
-              <EnhancedSimpleInput key={key} name={key} label={key}>
-                {key == 'product_code' && (
-                  <ScanQrCode onClick={handleShowScan} />
-                )}
-              </EnhancedSimpleInput>
-            );
-          })}
+
+        <EnhancedSimpleCombobox
+          list={products.map((product) => product.code)}
+          // name={key}
+          label={tc('code')}
+          // type={value.type}
+          // min="1"
+        >
+          <ScanQrCode
+            onClick={handleShowScan}
+            className={`cursor-pointer ${
+              isScan ? 'text-destructive' : 'text-green-500'
+            }`}
+          />
+        </EnhancedSimpleCombobox>
+        <EnhancedSimpleInput
+          name="quantity"
+          label={tc('quantity')}
+          type="number"
+          min={1}
+        />
+
         <Button
-          isLoading={sellsStatus === 'loading'}
-          className="mt-10 col-span-3"
+          isLoading={salesStatus === 'loading'}
+          className="mt-5 col-span-3"
           disabled={!isValid}
+          variant="outline"
         >
           {tc('add')}
         </Button>
@@ -123,9 +146,9 @@ const SellForm = () => {
     </Form>
   );
 };
-SellForm.propTypes = {
+SaleForm.propTypes = {
   entity: PropTypes.object.isRequired,
   resetItem: PropTypes.func.isRequired,
   createItem: PropTypes.func.isRequired,
 };
-export default SellForm;
+export default SaleForm;

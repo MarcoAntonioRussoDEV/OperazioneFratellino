@@ -46,43 +46,43 @@ public class ApiProductController {
     private ProductAttributesConverter productAttributesConverter;
 
     @GetMapping("/all")
-    public List<ProductDTO> getAllProducts(){
-        List<ProductDTO> products = productService.getAll().stream().filter(product -> !product.getIs_deleted()).map(productConverter::toDTO).collect(Collectors.toList());
+    public List<ProductDTO> getAllProducts(@RequestParam(required = false) String column, @RequestParam(required =
+            false) String direction) {
+        List<ProductDTO> products;
+        if (column != null && direction != null) {
+            products = productService.getAll(column, direction).stream().filter(product -> !product.getIs_deleted()).map(productConverter::toDTO).collect(Collectors.toList());
+        } else {
+            products = productService.getAll().stream().filter(product -> !product.getIs_deleted()).map(productConverter::toDTO).collect(Collectors.toList());
+        }
         return products;
     }
 
+
     @GetMapping("/by-id/{id}")
-    public ProductDTO findProductById(
-            @PathVariable Integer id
-    ){
+    public ProductDTO findProductById(@PathVariable Integer id) {
         ProductDTO product = productConverter.toDTO(productService.findById(id));
         return product;
     }
 
     @GetMapping("/by-code/{code}")
-    public ProductDTO findProductByCode(
-            @PathVariable String code
-    ){
+    public ProductDTO findProductByCode(@PathVariable String code) {
         ProductDTO product = productConverter.toDTO(productService.findByCode(code));
         return product;
     }
 
     @GetMapping("/by-category-code/{categoryCode}")
-    public List<ProductDTO> getProductByCategoryCode(
-            @PathVariable String categoryCode
-    ){
+    public List<ProductDTO> getProductByCategoryCode(@PathVariable String categoryCode) {
         log.info("execute findProductByCategoryCode");
-        List<ProductDTO> products = productService.findByCategoryCode(categoryCode).stream().map(productConverter::toDTO).toList();
+        List<ProductDTO> products =
+                productService.findByCategoryCode(categoryCode).stream().map(productConverter::toDTO).toList();
         return products;
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createProduct(
-            @RequestPart("product") RequestProductDTO productData,
-            @RequestPart(value = "image", required = false) MultipartFile image
-    ){
+    public ResponseEntity<String> createProduct(@RequestPart("product") RequestProductDTO productData,
+                                                @RequestPart(value = "image", required = false) MultipartFile image) {
 
-        return  productService.saveProductWithAttributes(productData, image);
+        return productService.saveProductWithAttributes(productData, image);
 
     }
 
@@ -101,16 +101,18 @@ public class ApiProductController {
             // Determina il tipo di contenuto
             String contentType = Files.probeContentType(filePath);
 
-            return ResponseEntity.ok()
-                    .header("Content-Type", contentType != null ? contentType : "application/octet-stream")
-                    .body(resource);
+            return ResponseEntity.ok().header("Content-Type", contentType != null ? contentType :
+                    "application/octet" + "-stream").body(resource);
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
 
-
+    @PostMapping("/delete/{productCode}")
+    public ResponseEntity<String> deleteProduct(@PathVariable String productCode) {
+        return productService.delete(productService.findByCode(productCode));
+    }
 
 
 }

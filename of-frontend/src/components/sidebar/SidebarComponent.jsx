@@ -16,7 +16,7 @@ import {
 import { capitalize, useTranslateAndCapitalize } from '@/utils/FormatUtils';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { linksMenu, sellsMenu } from '@/config/links/linksMenu';
+import { linksMenu, salesMenu } from '@/config/links/linksMenu';
 import IconMenuItem from './IconMenuItem';
 import logo from '../../assets/Images/logo.png';
 import logoColor from '../../assets/Images/logo-no-bg.png';
@@ -62,9 +62,9 @@ const SidebarComponent = () => {
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>{tc('sell', 'plural')}</SidebarGroupLabel>
+          <SidebarGroupLabel>{tc('sale', 'plural')}</SidebarGroupLabel>
           <SidebarMenu>
-            {Object.entries(sellsMenu).map(([name, values]) => {
+            {Object.entries(salesMenu).map(([name, values]) => {
               return <IconMenuItem key={name} name={name} {...values} />;
             })}
           </SidebarMenu>

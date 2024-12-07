@@ -1,13 +1,13 @@
 package it.operazione_fratellino.of_backend.repositories;
 
-import it.operazione_fratellino.of_backend.entities.Sell;
+import it.operazione_fratellino.of_backend.entities.Sale;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface SellRepository extends JpaRepository<Sell,Integer> {
+public interface SaleRepository extends JpaRepository<Sale,Integer> {
 
-    List<Sell> findAll();
+    List<Sale> findAll();
 }
