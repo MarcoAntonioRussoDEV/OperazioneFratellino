@@ -1,8 +1,11 @@
 <servers>
     <server>
-        <id>remote-server</id>
+        <id>relases</id>
         <username>ocrama94</username>
-        <privateKey>"C:\Users\Ocrama94\.ssh\id_rsa"</privateKey>
         <password>16Giugno94</password>
+        <configuration>
+            <strictHostKeyChecking>false</strictHostKeyChecking>
+        </configuration>
+        <privateKey>"C:\Users\Ocrama94\.ssh\id_rsa"</privateKey>
     </server>
 </servers>
