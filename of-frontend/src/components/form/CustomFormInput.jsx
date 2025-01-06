@@ -8,7 +8,7 @@ import {
   FormField,
   FormMessage,
 } from '@/components/ui/form';
-import { capitalize } from '@/utils/FormatUtils';
+import { capitalize } from '@/utils/formatUtils';
 import { Input } from '../ui/input';
 import { useTranslation } from 'react-i18next';
 import PropTypes from 'prop-types';

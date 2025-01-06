@@ -1,4 +1,12 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+import {
+  useAppHooks,
+  useFilterHooks,
+  useTableColumns,
+  useToastHooks,
+} from '@/hooks/useAppHooks';
+import { useSelector } from 'react-redux';
 import {
   Table,
   TableBody,
@@ -6,209 +14,221 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableCell,
 } from '@/components/ui/table';
-import { useSelector, useDispatch } from 'react-redux';
-import { useTranslation } from 'react-i18next';
-import { Spinner } from '../ui/spinner.jsx';
-import { capitalize } from '@/utils/FormatUtils.js';
-import iconToast from '@/utils/toastUtils';
-import { useToast } from '@/hooks/use-toast';
-import PropTypes, { string } from 'prop-types';
-import CustomRow from './CustomRow.jsx';
-import { ArrowDown, CircleX, Trash2 } from 'lucide-react';
-import { Label } from '../ui/label.jsx';
-import { Input } from '../ui/Input.jsx';
+import { Spinner } from '@/components/ui/spinner';
+import { ArrowDown, CircleX } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import CustomSwitch from '@/components/CustomSwitch';
+import { hasAccess } from '@/utils/authService';
+import { USER_ROLES } from '@/utils/userRoles';
+import { STATUS_ENUM } from '@/utils/toastUtils';
+import Paginator from './Paginator';
+import ItemsPerPage from './ItemsPerPage';
 
 const CustomTable = ({
-  orderItems,
-  filterItem,
-  deleteItem,
+  ENTITY,
   getItems,
   resetItems,
-  entity,
+  filterItems,
+  orderItems,
+  resetToast,
+  toastArray,
+  unfilerDeletedItems,
+  filterDeletedItems,
+  ItemRow,
+  setPage,
+  setItemsPerPage,
+  children,
 }) => {
-  const [filterColumn, setFilterColumn] = useState('id');
-  const [filterDirection, setFilterDirection] = useState('ASC');
-  const [filter, setFilter] = useState({});
-  const searchRef = useRef();
-  const [itemRows, setItemRows] = useState(
-    Object.entries(entity.fields)
-      .filter(([_, value]) => value.isTableHead)
-      .map((el) => el[0])
-      .concat(''),
-  );
-  const tableRef = useRef();
-  const { toast } = useToast();
-  const dispatch = useDispatch();
-  const { t } = useTranslation();
-  const allStore = `All${capitalize(entity.store)}`;
+  const { tc, t, dispatch, capitalize } = useAppHooks();
+  const { entityColumns } = useTableColumns(ENTITY);
+  const [checked, setChecked] = useState(true);
+  const { user } = useSelector((state) => state.user);
   const {
-    [entity.store]: items,
+    filterColumn,
+    setFilterColumn,
+    filterDirection,
+    setFilterDirection,
+    filter,
+    setFilter,
+    searchRef,
+    handleFilter,
+    handleSearch,
+    checkClearSearch,
+    clearSearch,
+    handlePreviousPage,
+    handleNextPage,
+  } = useFilterHooks(
+    getItems,
+    resetItems,
+    filterItems,
+    orderItems,
+    ENTITY,
+    setPage,
+    setItemsPerPage,
+  );
+
+  const {
+    [ENTITY.store]: items,
     status: itemStatus,
     error: itemError,
     response: itemResponse,
-  } = useSelector((state) => state[entity.store]);
+    pagination: { currentPage, itemsPerPage, totalItems, totalPages },
+    toast: { status: toastStatus, response: toastResponse, error: toastError },
+  } = useSelector((state) => state[ENTITY.store]);
 
-  const [itemList, setItemList] = useState(items);
-  useEffect(() => {
-    setItemList(items);
-  }, [items, itemStatus]);
+  useToastHooks(
+    toastStatus,
+    toastArray ?? [
+      STATUS_ENUM.SUCCESS,
+      STATUS_ENUM.DELETED,
+      STATUS_ENUM.FAILED,
+    ],
+    toastResponse,
+  );
 
-  useEffect(() => {
-    if (itemStatus === 'idle') {
-      dispatch(getItems({ column: filterColumn, direction: filterDirection }));
-      const timer = setTimeout(() => {
-        dispatch(resetItems());
-      }, 6000);
-      return () => clearTimeout(timer);
-    } else if (itemStatus === 'failed') {
-      toast(iconToast(itemStatus, itemError));
-    }
-  }, [
-    items,
-    itemStatus,
-    itemError,
-    toast,
-    dispatch,
-    getItems,
-    resetItems,
-    // filterColumn,
-    // filterDirection,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      dispatch(resetItems());
-    };
-  }, [dispatch, resetItems]);
-
-  useEffect(() => {
-    if (itemStatus === 'deleted' || itemStatus === 'failed') {
-      const currentToast = toast(iconToast(itemStatus, t(itemResponse)));
-      return () => {
-        currentToast.dismiss();
-      };
-    }
-  }, [itemStatus, itemError, itemResponse, toast, dispatch]);
-
-  useEffect(() => {
-    setFilter({
-      direction: filterDirection,
-      column: filterColumn,
-    });
-  }, [filterColumn, filterDirection]);
-
-  const handleFilter = (column) => {
-    if (column != filterColumn) {
-      setFilterColumn(column);
+  const handleDeleted = () => {
+    if (checked) {
+      dispatch(unfilerDeletedItems());
     } else {
-      setFilterDirection((oldValue) => {
-        return oldValue === 'ASC' ? 'DESC' : 'ASC';
-      });
+      dispatch(filterDeletedItems());
     }
+
+    setChecked((oldValue) => !oldValue);
   };
 
   useEffect(() => {
-    dispatch(orderItems(filter));
-  }, [filter]);
+    return () => resetToast && dispatch(resetToast());
+  }, []);
 
-  const handleSearch = (search) => {
-    dispatch(filterItem(search));
-  };
-
-  const clearSearch = () => {
-    searchRef.current.value = '';
-
-    handleSearch('');
-  };
-  const checkClearSearch = (e) => {
-    if (e.key === 'Delete') {
-      clearSearch();
-    }
-  };
-
-  return itemStatus === 'loading' ? (
+  return itemStatus === 'loading' || !items ? (
     <Spinner size="large" className="mt-10">
       {capitalize(t('loading'))}
     </Spinner>
   ) : (
     <>
-      <div className="md:w-1/4 flex flex-col gap-2">
-        <Label className="text-start">Cerca</Label>
-        <div className="relative">
-          <Input
-            id="custom-cancel-button"
-            onChange={(e) => handleSearch(e.target.value)}
-            type="search"
-            ref={searchRef}
-            onKeyDown={checkClearSearch}
-          />
-          <p className="absolute top-1/2 -translate-y-1/2 right-0 p-2">
-            <CircleX
-              className={`w-4 opacity-40 cursor-pointer hover:opacity-100 ${
-                searchRef.current && searchRef.current.value ? '' : 'hidden'
-              }`}
-              onClick={clearSearch}
+      <div className=" flex flex-col gap-2">
+        <article className="flex gap-2 justify-between">
+          <div className="relative text-start flex flex-col gap-2 w-full">
+            <Label className="text-start">{tc('search')}</Label>
+            <Input
+              id="custom-cancel-button"
+              onChange={(e) => handleSearch(e.target.value)}
+              type="search"
+              ref={searchRef}
+              onKeyDown={checkClearSearch}
             />
-          </p>
-        </div>
+            <p className="absolute top-1/2 -translate-y-1/2 right-0 p-2">
+              <CircleX
+                className={`w-4 opacity-40 cursor-pointer hover:opacity-100 ${
+                  searchRef.current && searchRef.current.value ? '' : 'hidden'
+                }`}
+                onClick={clearSearch}
+              />
+            </p>
+          </div>
+          <div className="text-start flex flex-col gap-2 w-fit">
+            <Label className="text-start whitespace-nowrap ">
+              {tc('itemsPerPage')}
+            </Label>
+            <ItemsPerPage
+              placeholder={tc('itemsPerPage')}
+              values={[10, 25, 50]}
+              onValueChange={(value) => dispatch(setItemsPerPage(value))}
+              itemsPerPage={itemsPerPage}
+            />
+          </div>
+        </article>
+        {filterDeletedItems && unfilerDeletedItems && (
+          <CustomSwitch
+            id="filter-deleted"
+            checked={checked}
+            label={`${tc('filter', 'action')} ${t(`${ENTITY.store}.disabled`, {
+              context: 'plural',
+            })}`}
+            onChecked={handleDeleted}
+          />
+        )}
+        {children}
       </div>
+
       <Table>
-        {!itemList.length ? (
+        {!items.length ? (
           <TableCaption>{capitalize(t('noItems'))}</TableCaption>
         ) : (
           ''
         )}
+
         <TableHeader className="sticky top-0 bg-background pt-2 z-10">
           <TableRow>
-            {itemRows.map((row, idx, arr) => {
-              return (
-                <TableHead
-                  onClick={() => {
-                    handleFilter(row);
-                  }}
-                  key={row}
-                  className={`cursor-pointer ${
-                    filterColumn === row && 'font-bold text-foreground'
-                  }`}
-                >
-                  <div className="flex items-center gap-1">
-                    {t(row).toUpperCase()}
-                    {filterColumn === row && (
-                      <ArrowDown
-                        className={`w-3 h-3 ${
-                          filterDirection === 'ASC' ? '' : 'rotate-180'
-                        }`}
-                      />
-                    )}
-                  </div>
-                </TableHead>
-              );
-            })}
+            {entityColumns
+              .filter((row) => {
+                if (hasAccess(user.role, USER_ROLES.OPERATOR)) {
+                  return row;
+                } else {
+                  return row !== 'actions';
+                }
+              })
+              .map((row) => {
+                return (
+                  <TableHead
+                    onClick={() => {
+                      handleFilter(row);
+                    }}
+                    key={row}
+                    className={`cursor-pointer ${
+                      filterColumn === row && 'font-bold text-foreground'
+                    }`}
+                  >
+                    <div className="flex items-center gap-1">
+                      {t(row).toUpperCase()}
+                      {filterColumn === row && (
+                        <ArrowDown
+                          className={`w-3 h-3 ${
+                            filterDirection === 'ASC' ? '' : 'rotate-180'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  </TableHead>
+                );
+              })}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {itemList.map((item, idx, arr) => {
-            return (
-              <CustomRow
-                key={item.id}
-                item={item}
-                entity={entity}
-                deleteItem={deleteItem}
-              />
-            );
+          {items.map((item, idx) => {
+            return <ItemRow key={item.id ?? idx} {...item} />;
           })}
         </TableBody>
       </Table>
+      <Paginator
+        handlePrevious={handlePreviousPage}
+        handleNext={handleNextPage}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        itemsPerPage={itemsPerPage}
+        setPage={setPage}
+      />
     </>
   );
 };
 
 CustomTable.propTypes = {
+  ENTITY: PropTypes.shape({
+    store: PropTypes.string,
+  }),
+  ItemRow: PropTypes.node,
+  filterDeletedItems: PropTypes.func,
+  filterItems: PropTypes.func,
   getItems: PropTypes.func,
+  orderItems: PropTypes.func,
   resetItems: PropTypes.func,
-  entity: PropTypes.object,
+  resetToast: PropTypes.func,
+  toastArray: PropTypes.array,
+  unfilerDeletedItems: PropTypes.func,
+  children: PropTypes.node,
 };
 
 export default CustomTable;

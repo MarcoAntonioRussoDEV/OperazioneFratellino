@@ -1,19 +1,25 @@
 package it.operazione_fratellino.of_backend.services.implement;
 
+import it.operazione_fratellino.of_backend.DTOs.CategoryDTO;
 import it.operazione_fratellino.of_backend.components.ExceptionHandlerService;
 import it.operazione_fratellino.of_backend.entities.Category;
+import it.operazione_fratellino.of_backend.entities.Product;
 import it.operazione_fratellino.of_backend.repositories.CategoryRepository;
 import it.operazione_fratellino.of_backend.services.CategoryService;
-import jakarta.validation.ConstraintViolationException;
+import it.operazione_fratellino.of_backend.services.ProductService;
+import it.operazione_fratellino.of_backend.utils.LogUtils;
+import it.operazione_fratellino.of_backend.utils.SeverityEnum;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
 @Log
 @Service
@@ -23,10 +29,23 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
     @Autowired
     private ExceptionHandlerService exceptionHandlerService;
+    @Autowired
+    private ProductService productService;
 
     @Override
-    public List<Category> getAll() {
+    public List<Category> findAll() {
         return categoryRepository.findAll();
+    }
+
+    @Override
+    public Page<Category> findAll(PageRequest pageRequest) {
+
+        try {
+            return categoryRepository.findAll(pageRequest);
+        } catch (Exception e) {
+            LogUtils.log("Errore durante il recupero delle categorie paginate: " + e.getMessage(), SeverityEnum.ERROR);
+            throw new RuntimeException("Errore durante il recupero delle categorie paginato", e);
+        }
     }
 
     @Override
@@ -68,6 +87,24 @@ public class CategoryServiceImpl implements CategoryService {
             return new ResponseEntity<>("Errore interno del server", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @Override
+    public ResponseEntity<String> patch(Category category, CategoryDTO categoryDTO) {
+        if (!Objects.equals(category.getCode(), categoryDTO.getCode())) {
+            for (Product product : category.getProducts()) {
+                product.setCode(product.getCode().replace(category.getCode(), categoryDTO.getCode()));
+                productService.save(product);
+            }
+            category.setCode(categoryDTO.getCode());
+        }
+        category.setName(categoryDTO.getName());
+        try{
+            categoryRepository.save(category);
+            return new ResponseEntity<>(String.format("Edited category: %s into %S - %s", category.getCode(),categoryDTO.getCode(),categoryDTO.getName()),HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Errore interno del server", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

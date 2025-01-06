@@ -10,7 +10,7 @@ import {
   DrawerTrigger,
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 
 const ImageDrawer = ({ imgSrc, title, description }) => {
   const tc = useTranslateAndCapitalize();
@@ -23,7 +23,13 @@ const ImageDrawer = ({ imgSrc, title, description }) => {
             {description}
           </DrawerDescription>
         </DrawerHeader>
-        <img className="rounded-xl" src={imgSrc} alt="" />
+        <figure className=" w-full h-[40vh]">
+          <img
+            className="rounded-xl object-cover w-full h-full"
+            src={imgSrc}
+            alt=""
+          />
+        </figure>
         <DrawerFooter>
           <DrawerClose asChild>
             <Button variant="outline">{tc('close')}</Button>

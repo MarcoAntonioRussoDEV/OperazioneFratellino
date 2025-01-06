@@ -28,12 +28,12 @@ import {
   codify,
   generateProductCode,
   useTranslateAndCapitalize,
-} from '@/utils/FormatUtils';
+} from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { PRODUCT } from '@/config/entity/entities';
+import { ATTRIBUTE, CATEGORY, PRODUCT } from '@/config/entity/entities';
 import { resetStatus, createProduct, productSlice } from '@/redux/productSlice';
 import { Textarea } from '@/components/ui/textarea';
 import { getAllCategories } from '@/redux/categorySlice';
@@ -48,36 +48,38 @@ import SimpleTextarea from '@/components/form/SimpleTextarea';
 import withFormContext from '@/components/HOC/withFormContext';
 import { PlusIcon, Trash2 } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
+import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import ComponentModal from '@/components/modal/ComponentModal';
+import CreateCategories from '@/pages/categories/create/CreateCategories';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppHooks, useToastHooks } from '@/hooks/useAppHooks';
 const EnhancedSimpleInput = withFormContext(SimpleInput);
 const EnhancedSimpleSelect = withFormContext(SimpleSelect);
 const EnhancedSimpleTextarea = withFormContext(SimpleTextarea);
-const ProductForm = () => {
+
+const ProductForm = ({ product }) => {
   /* Variabili */
   const [newProductCode, setNewProductCode] =
     useState(''); /* ID dell'ultimo prodotto inserito nel database */
   const [selectedCategoryCode, setSelectedCategoryCode] =
     useState(''); /* Codice della categoria nel campo select delle categorie */
-  const [currentAttempt, setCurrentAttempt] =
-    useState(0); /* Tentativo del refetch di axios retry */
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { tc, dispatch } = useAppHooks();
+
   /!* CATEGORIE */;
-  const {
-    categories,
-    status: categoryStatus,
-    error: categoryError,
-    retryAttempt: categoryRetryAttempt,
-    isRetrying,
-  } = useSelector((state) => state.categories);
+  const { categories, status: categoryStatus } = useSelector(
+    (state) => state[CATEGORY.store],
+  );
   /!* ATTRIBUTI */;
-  const {
-    attributes,
-    status: attributesStatus,
-    error: attributesError,
-    retryAttempt: attributesRetryAttempt,
-  } = useSelector((state) => state.attributes);
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  const tc =
-    useTranslateAndCapitalize(); /* Custom Hook per la traduzione e la capitalizzazione delle parole */
+  const { attributes, status: attributesStatus } = useSelector(
+    (state) => state[ATTRIBUTE.store],
+  );
+  /!* PRODOTTI */;
+  const { status: productsStatus, response: productsResponse } = useSelector(
+    (state) => state[PRODUCT.store],
+  );
+
   const methods = useForm({
     resolver: zodResolver(PRODUCT.formSchema),
     defaultValues: PRODUCT.defaultValues,
@@ -87,20 +89,11 @@ const ProductForm = () => {
   const {
     control,
     handleSubmit,
-    register,
-    getFieldState,
     reset,
     setValue,
     getValues,
     formState: { isValid, errors },
   } = methods;
-
-  const {
-    products,
-    status: productsStatus,
-    error: productsError,
-    response: productsResponse,
-  } = useSelector((state) => state[PRODUCT.store]);
 
   const {
     fields: existingAttributeField,
@@ -110,9 +103,10 @@ const ProductForm = () => {
     swap: existingAttributeSwap,
     move: existingAttributeMove,
     insert: existingAttributeInsert,
+    replace: existingAttributeReplace,
   } = useFieldArray({
     control,
-    name: 'existingProductAttributes', // unique name for your Field Array
+    name: 'existingProductAttributes',
   });
   const {
     fields: newAttributeField,
@@ -124,51 +118,80 @@ const ProductForm = () => {
     insert: newAttributeInsert,
   } = useFieldArray({
     control,
-    name: 'newProductAttributes', // unique name for your Field Array
+    name: 'newProductAttributes',
   });
 
   /!* Hooks */;
 
   useEffect(() => {
     fetchAll();
+    return () => {
+      dispatch(resetStatus());
+    };
   }, []);
 
+  const handleValues = async (product) => {
+    setValue('code', product.code);
+    setValue('name', product.name);
+    setValue('purchasePrice', product.purchasePrice);
+    setValue('sellingPrice', product.sellingPrice);
+    setValue('stock', product.stock);
+    setValue('description', product.description);
+    const category = await axios.get(CATEGORIES_DATA.byId + product.category);
+    setValue('category', category.data.code);
+    setValue(`existingProductAttributes`, product.attributes);
+    product.attributes?.forEach((attribute, idx) => {
+      setValue(
+        `existingProductAttributes.${idx}.attributeName`,
+        attribute.name,
+      );
+      setValue(
+        `existingProductAttributes.${idx}.attributeValue`,
+        attribute.value,
+      );
+    });
+  };
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentAttempt(retryAttempt);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    if (product?.code != null) {
+      handleValues(product);
+    }
+  }, [product, setValue, existingAttributeReplace]);
 
   useEffect(() => {
     setValue('code', newProductCode);
   }, [setValue, selectedCategoryCode, newProductCode]);
 
+  useToastHooks(productsStatus, ['created', 'failed'], productsResponse, reset);
+
   useEffect(() => {
-    if (productsStatus === 'created' || productsStatus === 'failed') {
-      console.log(productsStatus);
-      const currentToast = toast(
-        iconToast(productsStatus, tc(productsResponse)),
-      );
-      dispatch(resetStatus());
-      reset(PRODUCT.defaultValues);
-      return () => {
-        // currentToast.dismiss();
-        dispatch(resetStatus());
-      };
+    if (productsStatus === 'created') {
+      newAttributeRemove();
+      existingAttributeRemove();
+      reset();
     }
   }, [productsStatus]);
 
+  //? Se ci sono dati passati da un'altra pagina, li inserisce nei campi del form
+  useEffect(() => {
+    if (location.state?.formData) {
+      const formData = location.state.formData;
+      Object.keys(formData).forEach((key) => {
+        setValue(key, formData[key]);
+      });
+    }
+  }, [location.state, setValue]);
+
   /!* Methods  */;
   const fetchAll = () => {
-    setCurrentAttempt(0);
     dispatch(getAllCategories());
     dispatch(getAllAttributes());
   };
 
   const fetchLastCode = async (cat_code) => {
     try {
-      const response = await axios.get(PRODUCTS_DATA.byCategoryCode + cat_code);
+      // const response = await axios.get(PRODUCTS_DATA.byCategoryCode + cat_code);
+      const response = await axios.get(CATEGORIES_DATA.byCode + cat_code);
       setNewProductCode(generateProductCode(response.data, cat_code));
     } catch (error) {
       console.log(error);
@@ -181,8 +204,6 @@ const ProductForm = () => {
   };
 
   const onSubmit = async (data) => {
-    console.log('Prodotto creato: ', data);
-
     const formData = new FormData();
     formData.append('image', data.image[0]);
     delete data.image;
@@ -193,11 +214,17 @@ const ProductForm = () => {
     dispatch(createProduct(formData));
   };
 
+  const handleCreateCategory = () => {
+    navigate('/categories/create', {
+      state: { from: '/products/create', formData: getValues() },
+    });
+  };
+
   return (
     <Form {...methods}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-3 gap-2"
+        className="flex flex-col lg:grid lg:grid-cols-3 gap-2"
         encType="multipart/form-data"
       >
         <EnhancedSimpleInput
@@ -220,31 +247,43 @@ const ProductForm = () => {
           type="number"
         />
         <EnhancedSimpleInput name="stock" label="stock" type="number" />
-        <EnhancedSimpleSelect
-          name="category"
-          label="category"
-          list={categories}
-          valueField="code"
-          placeholder={'selectCategory'}
-          status={categoryStatus}
-          reFetch={getAllCategories}
-          retryAttempt={retryAttempt}
-          onValueChange={handleCodeGenerator}
-        />
+        <div className="flex items-end">
+          <EnhancedSimpleSelect
+            name="category"
+            label="category"
+            list={categories}
+            valueField="code"
+            placeholder={'selectCategory'}
+            status={categoryStatus}
+            reFetch={getAllCategories}
+            retryAttempt={retryAttempt}
+            onValueChange={handleCodeGenerator}
+            className="rounded-e-none border-e-0 focus:ring-0"
+          >
+            <Button
+              variant="outline"
+              type="button"
+              className="p-2 rounded-s-none bg-accent-soft"
+              onClick={handleCreateCategory}
+            >
+              <PlusIcon />
+            </Button>
+          </EnhancedSimpleSelect>
+        </div>
         <EnhancedSimpleTextarea
           className="col-span-full"
           name="description"
           label="description"
         />
 
-        <fieldset className="border rounded-lg p-4 col-span-3 grid grid-cols-2 gap-2">
+        <fieldset className="border rounded-lg p-4 col-span-3 flex flex-col lg:grid lg:grid-cols-2 gap-4 lg:gap-2">
           <legend>{tc('attributes')}</legend>
           <Button
             type="button"
             onClick={() => existingAttributeAppend({ name: '', value: '' })}
             variant="secondary"
           >
-            {tc('addExistingAttribute')}
+            <span className="truncate">{tc('addExistingAttribute')}</span>
             <PlusIcon />
           </Button>
           <Button
@@ -252,15 +291,12 @@ const ProductForm = () => {
             type="button"
             onClick={() => newAttributeAppend({ name: '', value: '' })}
           >
-            {tc('addAttribute')}
+            <span className="truncate">{tc('addAttribute')}</span>
             <PlusIcon />
           </Button>
 
           {existingAttributeField.map((field, idx) => (
-            <div
-              key={field.id}
-              className="col-span-full grid grid-cols-3 gap-2"
-            >
+            <div key={field.id} className="col-span-full flex gap-2">
               <EnhancedSimpleSelect
                 name={`existingProductAttributes.${idx}.attributeName`}
                 label="attribute"
@@ -270,28 +306,30 @@ const ProductForm = () => {
                 status={attributesStatus}
                 reFetch={getAllAttributes}
                 retryAttempt={retryAttempt}
+                defaultValue={field.name}
+                className="w-full"
               />
               <EnhancedSimpleInput
                 name={`existingProductAttributes.${idx}.attributeValue`}
                 label="value"
+                defaultValue={field.value}
+                className="w-full"
               />
               <Button
                 variant="destructive"
                 size="icon"
+                type="button"
                 onClick={() => {
                   existingAttributeRemove(field.id);
                 }}
-                className="self-end"
+                className="self-end  aspect-square"
               >
                 <Trash2 />
               </Button>
             </div>
           ))}
           {newAttributeField.map((field, idx) => (
-            <div
-              key={field.id}
-              className="col-span-full grid grid-cols-3 gap-2"
-            >
+            <div key={field.id} className="col-span-full flex gap-2">
               <EnhancedSimpleInput
                 name={`newProductAttributes.${idx}.attributeName`}
                 label="attribute"
@@ -317,13 +355,28 @@ const ProductForm = () => {
         <Button
           isLoading={productsStatus === 'loading'}
           className="mt-10 col-span-3"
-          disabled={!isValid}
+          // disabled={!isValid}
         >
-          {tc('createProduct')}
+          {product ? tc('product.edit') : tc('createProduct')}
         </Button>
       </form>
     </Form>
   );
+};
+
+ProductForm.propTypes = {
+  product: PropTypes.shape({
+    attributes: PropTypes.shape({
+      forEach: PropTypes.func,
+    }),
+    category: PropTypes.number,
+    code: PropTypes.string,
+    description: PropTypes.string,
+    name: PropTypes.string,
+    purchasePrice: PropTypes.number,
+    sellingPrice: PropTypes.number,
+    stock: PropTypes.number,
+  }),
 };
 
 export default ProductForm;

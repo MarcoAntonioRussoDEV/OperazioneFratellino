@@ -4,6 +4,8 @@ import it.operazione_fratellino.of_backend.DTOs.AttributeDTO;
 import it.operazione_fratellino.of_backend.services.AttributeService;
 import it.operazione_fratellino.of_backend.utils.BooleanUtils;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.AttributeConverter;
+import it.operazione_fratellino.of_backend.utils.PaginateResponse;
+import it.operazione_fratellino.of_backend.utils.PaginationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -37,14 +39,14 @@ public class ApiAttributeController {
 
 
     @GetMapping("/all")
-    public List<AttributeDTO> getAllAttributes(){
-        List<AttributeDTO> attributes = attributeService.getAll().stream().map(attributeConverter::toDTO).toList();
-        return attributes;
+    public PaginateResponse<AttributeDTO> getAllAttributes(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
+        return PaginationUtils.getAllEntities(page, size, attributeService::findAll, attributeConverter::toDTO);
+
     }
 
 //    @GetMapping("/all/prod")
 //    public List<AttributeDTO> getAllAttributesProd(){
-//        List<AttributeDTO> attributes = attributeService.getAll().stream().map(attributeConverter::toDTO).collect(Collectors.toUnmodifiableList());
+//        List<AttributeDTO> attributes = attributeService.findAll().stream().map(attributeConverter::toDTO).collect(Collectors.toUnmodifiableList());
 //        return attributes;
 //    }
 

@@ -1,7 +1,5 @@
 package it.operazione_fratellino.of_backend.DTOs;
 
-import it.operazione_fratellino.of_backend.entities.ProductSale;
-import it.operazione_fratellino.of_backend.entities.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,4 +20,5 @@ public class SaleDTO {
     private Double sellingPrice;
     private Double profit;
     private Date createdAt;
+    private String client;
 }

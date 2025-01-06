@@ -1,6 +1,6 @@
 import { React, useEffect, useRef, useState } from 'react';
 import QRCode from 'react-qr-code';
-import { toHSL } from '@/utils/FormatUtils';
+import { toHSL } from '@/utils/formatUtils';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Download } from 'lucide-react';

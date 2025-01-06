@@ -7,7 +7,7 @@ import {
   FormLabel,
 } from '../ui/form';
 import { Input } from '../ui/input';
-import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { Textarea } from '../ui/textarea';
 const SimpleTextarea = ({
   control,

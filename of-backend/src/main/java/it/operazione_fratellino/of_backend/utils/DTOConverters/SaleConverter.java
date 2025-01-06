@@ -6,6 +6,7 @@ import it.operazione_fratellino.of_backend.entities.ProductSale;
 import it.operazione_fratellino.of_backend.entities.Sale;
 import it.operazione_fratellino.of_backend.repositories.ProductRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductSaleRepository;
+import it.operazione_fratellino.of_backend.services.ClientService;
 import it.operazione_fratellino.of_backend.services.ProductSaleService;
 import it.operazione_fratellino.of_backend.services.ProductService;
 import it.operazione_fratellino.of_backend.services.UserService;
@@ -26,6 +27,8 @@ public class SaleConverter {
     ProductSaleService productSaleService;
     @Autowired
     ProductSaleConverter productSaleConverter;
+    @Autowired
+    ClientService clientService;
 
     public SaleDTO toDTO(Sale sale){
         SaleDTO dto = new SaleDTO();
@@ -34,6 +37,7 @@ public class SaleConverter {
         dto.setSellingPrice(sale.getTotal_price());
         dto.setProfit(sale.getProfit());
         dto.setCreatedAt(sale.getCreatedAt());
+        dto.setClient(sale.getClient().getEmail());
 
         dto.setProducts(sale.getProductSale().stream().map(productSaleConverter::toDTO).toList()); //TODO
 
@@ -50,6 +54,7 @@ public class SaleConverter {
         sale.setTotal_price(dto.getSellingPrice());
         sale.setProfit(dto.getProfit());
         sale.setCreatedAt(dto.getCreatedAt());
+        sale.setClient(clientService.findByEmail(dto.getClient()));
 
 
         return sale;

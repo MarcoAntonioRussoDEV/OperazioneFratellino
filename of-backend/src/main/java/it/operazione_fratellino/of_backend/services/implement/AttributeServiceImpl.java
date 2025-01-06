@@ -4,8 +4,12 @@ import it.operazione_fratellino.of_backend.components.ExceptionHandlerService;
 import it.operazione_fratellino.of_backend.entities.Attribute;
 import it.operazione_fratellino.of_backend.repositories.AttributeRepository;
 import it.operazione_fratellino.of_backend.services.AttributeService;
+import it.operazione_fratellino.of_backend.utils.LogUtils;
+import it.operazione_fratellino.of_backend.utils.SeverityEnum;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,8 +28,18 @@ public class AttributeServiceImpl implements AttributeService {
 
 
     @Override
-    public List<Attribute> getAll() {
-        return attributeRepository.findAll();
+    public List<Attribute> findAll() {
+        try {
+            return attributeRepository.findAll();
+        } catch (Exception e) {
+            LogUtils.log("Errore durante il recupero dell'attributo paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            throw new RuntimeException("Errore durante il recupero dell'attributo paginato", e);
+        }
+    }
+
+    @Override
+    public Page<Attribute> findAll(PageRequest pageRequest) {
+        return attributeRepository.findAll(pageRequest);
     }
 
     @Override

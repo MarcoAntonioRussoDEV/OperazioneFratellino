@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import {
   FormField,
   FormItem,
@@ -7,7 +7,8 @@ import {
   FormLabel,
 } from '../ui/form';
 import { Input } from '../ui/input';
-import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
+
 const SimpleInput = ({
   control,
   register,
@@ -44,5 +45,4 @@ const SimpleInput = ({
     />
   );
 };
-
 export default SimpleInput;

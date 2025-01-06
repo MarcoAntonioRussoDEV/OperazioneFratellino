@@ -16,11 +16,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { ExternalLink } from 'lucide-react';
 import PropTypes from 'prop-types';
 
-const OTMDropdown = ({
+const MTMDropdown = ({
   relateEntity,
   dropDownName,
   relateDisplayField,
@@ -66,13 +66,13 @@ const OTMDropdown = ({
   );
 };
 
-OTMDropdown.propTypes = {
+MTMDropdown.propTypes = {
   dropDownName: PropTypes.string.isRequired,
   relateDisplayField: PropTypes.string.isRequired,
   relateDisplayValue: PropTypes.string.isRequired,
   relateEntity: PropTypes.object.isRequired,
 };
 
-export default OTMDropdown;
+export default MTMDropdown;
 
 //TODO Rifattorizzare componente per dividere l'effettivo MTM dal multi MTM

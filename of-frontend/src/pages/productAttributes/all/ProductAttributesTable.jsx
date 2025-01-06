@@ -14,7 +14,6 @@ const ProductAttributesTable = () => {
   useEffect(() => {
     dispatch(getAllProductAttributes());
   }, []);
-  console.log(productAttributes);
   return (
     <CustomTable
       getItems={getAllProductAttributes}

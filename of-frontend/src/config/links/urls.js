@@ -1,53 +1,97 @@
-import axios from 'axios';
-
-export const BASE_URL = 'https://localhost:8443/api/';
-
 const PRODUCTS_DATA = {
-  all: BASE_URL + 'products/all?',
-  byId: BASE_URL + 'products/by-id/',
-  byCode: BASE_URL + 'products/by-code/',
-  create: BASE_URL + 'products/create',
-  byCategoryCode: BASE_URL + 'products/by-category-code/',
-  getImage: BASE_URL + 'products/get-image/',
-  delete: BASE_URL + 'products/delete/',
+  all: 'products/all?',
+  byId: 'products/by-id/',
+  byCode: 'products/by-code/',
+  create: 'products/create',
+  byCategoryCode: 'products/by-category-code/',
+  getImage: 'products/get-image/',
+  delete: 'products/delete/',
+  disable: 'products/disable/',
 };
 
 const CATEGORIES_DATA = {
-  all: BASE_URL + 'categories/all',
-  byId: BASE_URL + 'categories/by-id/',
-  byCode: BASE_URL + 'categories/by-code/',
-  create: BASE_URL + 'categories/create',
-  delete: BASE_URL + 'categories/delete/',
+  all: 'categories/all',
+  byId: 'categories/by-id/',
+  byCode: 'categories/by-code/',
+  create: 'categories/create',
+  delete: 'categories/delete/',
+  edit: 'categories/edit/',
 };
 
 const ATTRIBUTES_DATA = {
-  all: BASE_URL + 'attributes/all',
-  byId: BASE_URL + 'attributes/by-id/',
-  byName: BASE_URL + 'attributes/by-name/',
+  all: 'attributes/all',
+  byId: 'attributes/by-id/',
+  byName: 'attributes/by-name/',
 };
 const PRODUCT_ATTRIBUTES_DATA = {
-  all: BASE_URL + 'product-attributes/all',
-  byId: BASE_URL + 'product-attributes/',
+  all: 'product-attributes/all',
+  byId: 'product-attributes/',
 };
 
 const AUTH_DATA = {
-  login: BASE_URL + 'auth/login',
-  logout: BASE_URL + 'auth/logout',
-  getUser: BASE_URL + 'auth/me',
+  login: 'auth/login',
+  logout: 'auth/logout',
+  getUser: 'auth/me',
 };
 
 const SALES_DATA = {
-  all: BASE_URL + 'sales/all',
-  create: BASE_URL + 'sales/create',
-  delete: BASE_URL + 'sales/delete/',
+  all: 'sales/all',
+  create: 'sales/create',
+  delete: 'sales/delete/',
+};
+
+const PREORDER_DATA = {
+  all: 'preorders/all',
+  create: 'preorders/create',
+  delete: 'preorders/delete/',
+  byUser: 'preorders/my-preorders/',
+  countByStatus: 'preorders/count-by-status/',
+  updateStatus: 'preorders/update-status/',
+  toSale: 'preorders/to-sale/',
 };
 
 const USER_DATA = {
-  all: BASE_URL + 'user/all',
-  create: BASE_URL + 'user/create',
-  setAvatar: BASE_URL + 'user/set-avatar',
-  getAvatar: BASE_URL + 'user/get-avatar/',
-  byEmail: BASE_URL + 'user/by-email/',
+  all: 'user/all',
+  create: 'user/create',
+  setAvatar: 'user/set-avatar',
+  getAvatar: 'user/get-avatar/',
+  byEmail: 'user/by-email/',
+  edit: 'user/edit-user',
+};
+
+const CLIENT_DATA = {
+  all: 'client/all',
+  byEmail: 'client/by-email/',
+};
+
+const ADMIN_DATA = {
+  getAllUsers: 'admin/users/all',
+  deleteUser: 'admin/users/delete/',
+  enableUser: 'admin/users/enable/',
+  resetUserPassword: 'admin/users/reset-password/',
+};
+
+const CITY_DATA = {
+  all: 'cities/all',
+  byId: 'cities/by-id/',
+  byName: 'cities/by-name/',
+};
+
+const ROLE_DATA = {
+  all: 'roles/all',
+  byName: 'roles/by-name/',
+};
+const STATUS_DATA = {
+  all: 'status/all',
+  byValue: 'status/byValue/',
+};
+const CART_DATA = {
+  byUserEmail: 'carts/by-user-email/',
+  addProduct: 'carts/add-item/',
+  deleteProduct: 'carts/delete-item/',
+  increaseProduct: 'carts/increase-item/',
+  decreaseProduct: 'carts/decrease-item/',
+  toPreorder: 'carts/to-preorder',
 };
 
 export {
@@ -58,6 +102,13 @@ export {
   AUTH_DATA,
   SALES_DATA,
   USER_DATA,
+  ADMIN_DATA,
+  CITY_DATA,
+  ROLE_DATA,
+  CLIENT_DATA,
+  STATUS_DATA,
+  PREORDER_DATA,
+  CART_DATA,
 };
 
 export const fetchCategoriesCode = async () => {
@@ -84,7 +135,21 @@ export default function resolveEntityURLS(entity) {
       return PRODUCT_ATTRIBUTES_DATA;
     case 'user':
       return USER_DATA;
+    case 'users':
+      return USER_DATA;
+    case 'client':
+      return CLIENT_DATA;
+    case 'city':
+      return CITY_DATA;
+    case 'role':
+      return ROLE_DATA;
+    case 'status':
+      return STATUS_DATA;
+    case 'preorder':
+      return PREORDER_DATA;
+    case 'preorders':
+      return PREORDER_DATA;
     default:
-      return BASE_URL;
+      return;
   }
 }

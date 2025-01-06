@@ -7,7 +7,14 @@ import productAttributesReducer from './productAttributesSlice';
 import userReducer from './userSlice';
 import sidebarReducer from './sidebarSlice';
 import themeReducer from './themeSlice';
+import sellCartReducer from './sellCartSlice';
 import cartReducer from './cartSlice';
+import usersReducer from './usersSlice';
+import citiesReducer from './citiesSlice';
+import roleReducer from './rolesSlice';
+import preorderCartReducer from './preorderCartSlice';
+import statusReducer from './statusSlice';
+import preorderReducer from './preorderSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +26,13 @@ export const store = configureStore({
     sales: salesReducer,
     sidebar: sidebarReducer,
     theme: themeReducer,
+    sellCart: sellCartReducer,
     cart: cartReducer,
+    users: usersReducer,
+    cities: citiesReducer,
+    roles: roleReducer,
+    preorderCart: preorderCartReducer,
+    preorderStatus: statusReducer,
+    preorders: preorderReducer,
   },
 });

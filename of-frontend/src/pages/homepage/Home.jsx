@@ -2,19 +2,13 @@ import Gains from './Gains';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useState } from 'react';
 import {
-  dateRangeSales,
-  getAllSales,
-  getMostSoldProduct,
-  monthsGainsChartDataResolver,
-  getMonthsGainsChartData,
   getAllSalesDateRange,
   resetStatus,
   initializeSalesData,
 } from '@/redux/salesSlice';
 import MostSoldProducts from './MostSoldProduct';
 import DatePicker from './DatePicker';
-import { addDays } from 'date-fns';
-import { setCurrentMonth } from '@/utils/FormatUtils';
+import { setCurrentMonth } from '@/utils/formatUtils';
 
 const totalGainColor = 'hsl(var(--chart-1))';
 const profitColor = 'hsl(var(--chart-3))';
@@ -62,6 +56,7 @@ const Home = () => {
   useEffect(() => {
     return () => dispatch(resetStatus());
   }, []);
+
   return (
     <>
       <DatePicker

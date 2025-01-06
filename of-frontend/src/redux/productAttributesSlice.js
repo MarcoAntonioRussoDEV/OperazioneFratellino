@@ -4,8 +4,10 @@ import { PRODUCT_ATTRIBUTES_DATA } from '@/config/links/urls';
 
 export const getAllProductAttributes = createAsyncThunk(
   'productAttributes/getAllProductAttributes',
-  async () => {
-    const response = await axios.get(PRODUCT_ATTRIBUTES_DATA.all);
+  async ({ page = 0, size = -1 } = {}) => {
+    const response = await axios.get(PRODUCT_ATTRIBUTES_DATA.all, {
+      params: { page, size },
+    });
     return response.data;
   },
 );
@@ -15,7 +17,6 @@ export const createProductAttribute = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(PRODUCT_ATTRIBUTES_DATA.create, data);
-      console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.status);

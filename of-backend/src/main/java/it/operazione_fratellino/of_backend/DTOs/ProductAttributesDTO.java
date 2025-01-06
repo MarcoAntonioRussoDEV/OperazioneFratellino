@@ -11,8 +11,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ProductAttributesDTO {
     private Integer id;
-    private String productCode;
-    private String attributeName;
+//    private String productCode;
+//    private String attributeName;
+    private Integer product;
+    private String name;
     private String value;
 
 

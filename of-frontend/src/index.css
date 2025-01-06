@@ -28,10 +28,14 @@
 
     --muted: 0 0% 96.1%;
 
+    --muted-darker: 0 0% 92%;
+
     --muted-foreground: 31, 86%, 45%;
     /* --muted-foreground: 0 0% 45.1%; */
 
     --accent: 0 0% 96.1%;
+
+    --accent-soft: 0 0% 92%;
 
     --accent-foreground: 0 0% 9%;
 
@@ -43,10 +47,14 @@
 
     --warning-foreground: 0, 0%, 0%;
 
+    --success: 127, 60%, 26%;
+
+    --success-foreground: 0, 0%, 0%;
+
     --border: 0 0% 75.8%;
     /* --border: 0 0% 89.8%; */
 
-    --input: 0 0% 89.8%;
+    --input: 0, 4%, 90%;
 
     --ring: 0 0% 3.9%;
 
@@ -81,6 +89,8 @@
     /* --sidebar-border: 220 13% 91%; */
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --danger: theme('colors.red.700');
   }
 
   .dark {
@@ -106,9 +116,13 @@
 
     --muted: 0 0% 14.9%;
 
+    --muted-darker: 0, 0%, 7%;
+
     --muted-foreground: 0 0% 63.9%;
 
     --accent: 0 0% 14.9%;
+
+    --accent-soft: 0 0% 10%;
 
     --accent-foreground: 0 0% 98%;
 
@@ -171,4 +185,79 @@
 
 #custom-cancel-button::-webkit-search-cancel-button {
   -webkit-appearance: none;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: hsl(var(--background));
+  }
+  20% {
+    background-color: hsl(var(--accent));
+  }
+  100% {
+    background-color: hsl(var(--background));
+  }
+}
+
+.pulse {
+  animation: pulse 800ms linear forwards;
+}
+
+.striped-background {
+  background: repeating-linear-gradient(
+    45deg,
+    hsl(var(--accent-soft)),
+    hsl(var(--accent-soft)) 10px,
+    hsl(var(--background)) 10px,
+    hsl(var(--background)) 20px
+  );
+}
+
+.separator li:not(:last-child) {
+  border-bottom: 1px solid hsl(var(--accent));
+}
+
+.popover::before {
+  --dimension: 0.5rem;
+  content: '';
+  position: absolute;
+  inset: calc(var(--dimension) * -1) 4%;
+
+  border-left: calc(var(--dimension) - 0.2rem) solid transparent
+    /* hsl(var(--accent)) */;
+  border-right: calc(var(--dimension) - 0.2rem) solid transparent
+    /* hsl(var(--accent)) */;
+  border-bottom: var(--dimension) solid hsl(var(--accent));
+  width: 0;
+  height: 0;
+}
+
+body::-webkit-scrollbar,
+.overflow-x-scroll::-webkit-scrollbar {
+  --size: 0.8rem;
+  width: var(--size);
+  height: var(--size);
+}
+
+body::-webkit-scrollbar-track,
+.overflow-x-scroll::-webkit-scrollbar-track {
+  border-radius: 8px;
+  background-color: transparent;
+}
+
+body::-webkit-scrollbar-thumb,
+.overflow-x-scroll::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background-color: hsl(var(--accent));
+  cursor: -webkit-grabbing;
+}
+
+body {
+  scrollbar-width: auto;
+}
+
+.dropdown-button {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
 }

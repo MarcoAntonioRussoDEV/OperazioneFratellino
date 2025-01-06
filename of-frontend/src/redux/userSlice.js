@@ -1,18 +1,28 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axios } from '../config/axios/axiosConfig';
-import { AUTH_DATA, USER_DATA } from '@/config/links/urls';
+import { AUTH_DATA } from '@/config/links/urls';
+import { blobToSrc, createInitialsImage } from '@/utils/imageUtils';
+import { usernameInitials } from '@/utils/formatUtils';
 
 export const getAuthUser = createAsyncThunk('user/getAuthUser', async () => {
   const response = await axios.get(AUTH_DATA.getUser);
+
+  let avatar = response.data.avatar;
+  if (!response.data.avatar) {
+    avatar = createInitialsImage(usernameInitials(response.data.name));
+  }
   response.data = {
     ...response.data,
-    avatar: USER_DATA.getAvatar + response.data.email,
+    avatar: blobToSrc(avatar),
   };
   return response.data;
 });
 
 export const logoutUser = createAsyncThunk('user/logoutUser', async () => {
   const response = await axios.post(AUTH_DATA.logout);
+  localStorage.removeItem('token');
+  localStorage.removeItem('isAuthenticated');
+  window.location.pathname = '/login';
   return response.data;
 });
 export const loginUser = createAsyncThunk('user/loginUser', async () => {
@@ -28,6 +38,15 @@ const user = {
   avatar: '',
 };
 
+const resetUserStatus = (state) => {
+  state.user = user;
+  state.status = 'idle';
+  state.error = null;
+  state.response = null;
+  state.isAuthenticated = false;
+  localStorage.removeItem('isAuthenticated');
+};
+
 const initialState = {
   user,
   status: 'idle',
@@ -41,9 +60,7 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     resetStatus(state) {
-      (state.user = user), (state.status = 'idle'), (state.error = null);
-      state.response = null;
-      state.isAuthenticated = localStorage.getItem('isAuthenticated') ?? false;
+      resetStatus(state);
     },
   },
   extraReducers: (builder) => {
@@ -65,7 +82,7 @@ export const userSlice = createSlice({
       })
       .addCase(logoutUser.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.user = user;
+        resetUserStatus(state);
       })
       .addCase(logoutUser.rejected, (state, action) => {
         state.status = 'failed';

@@ -8,19 +8,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Form,
   FormItem,
   FormControl,
   FormLabel,
-  FormDescription,
   FormField,
   FormMessage,
 } from '@/components/ui/form';
-import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
 import { Spinner } from '../ui/spinner';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
-import { useDispatch } from 'react-redux';
+import { useAppHooks } from '@/hooks/useAppHooks';
+
 const SimpleSelect = ({
   control,
   register,
@@ -31,11 +29,12 @@ const SimpleSelect = ({
   placeholder = '' /* placeholder html */,
   status = 'loading' /* stato del fetch in caso di lista recuperata da api */,
   reFetch /* metodo per il refetch della lista */,
-  retryAttempt /* numero di tentativo del retry fetch di axios */,
   onValueChange = () => {},
+  className,
+  children,
 }) => {
-  const tc = useTranslateAndCapitalize();
-  const dispatch = useDispatch();
+  const { tc, dispatch } = useAppHooks();
+
   const renderContent = () => {
     if (status === 'success') {
       return list.map((item) => {
@@ -45,14 +44,8 @@ const SimpleSelect = ({
           </SelectItem>
         );
       });
-    } else if (status === 'loading' && retryAttempt === 0) {
-      return <Spinner>{tc(`loading`)}</Spinner>;
     } else if (status === 'loading') {
-      return (
-        <Spinner className="p-2">
-          {tc(`retryAttempt`) + ` n° ${retryAttempt}`}
-        </Spinner>
-      );
+      return <Spinner>{tc(`loading`)}</Spinner>;
     } else {
       return (
         <Button
@@ -66,31 +59,41 @@ const SimpleSelect = ({
       );
     }
   };
+
   return (
-    <FormField
-      control={control}
-      name={name}
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>{tc(label)}</FormLabel>
-          <Select
-            {...register(name)}
-            onValueChange={(value) => {
-              field.onChange(value);
-              onValueChange(value);
-            }}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder={tc(placeholder)} />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>{renderContent()}</SelectContent>
-          </Select>
-          <FormMessage translate_capitalize className="text-end" />
-        </FormItem>
-      )}
-    />
+    <>
+      <FormField
+        control={control}
+        name={name}
+        render={({ field }) => (
+          <FormItem className="w-full">
+            <FormLabel className="truncate">{tc(label)}</FormLabel>
+            <Select
+              {...register(name)}
+              onValueChange={(value) => {
+                field.onChange(value);
+                onValueChange(value);
+              }}
+              onCloseAutoFocus={(e) => {
+                e.preventDefault();
+              }}
+              {...field}
+            >
+              <FormControl>
+                <div className="flex">
+                  <SelectTrigger className={className}>
+                    <SelectValue placeholder={tc(placeholder)} />
+                  </SelectTrigger>
+                  {children}
+                </div>
+              </FormControl>
+              <SelectContent>{renderContent()}</SelectContent>
+            </Select>
+            <FormMessage translate_capitalize className="text-end" />
+          </FormItem>
+        )}
+      />
+    </>
   );
 };
 

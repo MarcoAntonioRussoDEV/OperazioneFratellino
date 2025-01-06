@@ -29,5 +29,9 @@ public class City {
     @OneToMany(mappedBy = "city")
     private List<User> users;
 
-//    Methods
+    public City(String name) {
+        this.name = name;
+    }
+
+    //    Methods
 }

@@ -4,9 +4,11 @@ import { CATEGORIES_DATA } from '../config/links/urls';
 
 export const getAllCategories = createAsyncThunk(
   'categories/getAllCategories',
-  async (_, { dispatch, rejectWithValue }) => {
+  async ({ page = 0, size = -1 } = {}, { rejectWithValue }) => {
     try {
-      const response = await axios.get(CATEGORIES_DATA.all);
+      const response = await axios.get(CATEGORIES_DATA.all, {
+        params: { page, size },
+      });
       return response.data;
     } catch (error) {
       return rejectWithValue(
@@ -16,12 +18,38 @@ export const getAllCategories = createAsyncThunk(
   },
 );
 
+export const getCategoryById = createAsyncThunk(
+  'categories/getCategoryById',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(CATEGORIES_DATA.byId + id);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
+
+export const editCategory = createAsyncThunk(
+  'categories/editCategory',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await axios.patch(
+        CATEGORIES_DATA.edit + data.id,
+        data.category,
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  },
+);
+
 export const createCategory = createAsyncThunk(
   'categories/createCategory',
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(CATEGORIES_DATA.create, data);
-      console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.status);
@@ -34,8 +62,7 @@ export const deleteCategory = createAsyncThunk(
   'categories/deleteCategory',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await axios.post(CATEGORIES_DATA.delete + data);
-      console.log(response);
+      const response = await axios.delete(CATEGORIES_DATA.delete + data);
       return { id: data, response: response.data };
     } catch (error) {
       console.log(error.response);
@@ -47,19 +74,34 @@ export const deleteCategory = createAsyncThunk(
 const initialState = {
   categories: [],
   allCategories: [],
+  category: {},
   status: 'idle',
-  error: null,
-  response: null,
+  pagination: {
+    currentPage: 0,
+    itemsPerPage: 10,
+    totalItems: 0,
+    totalPages: 0,
+  },
+  toast: {
+    status: null,
+    error: null,
+    response: null,
+  },
 };
 
 export const cateogrySlice = createSlice({
   name: 'categories',
   initialState,
   reducers: {
-    resetStatus(state) {
-      state.status = 'idle';
-      state.error = null;
-      state.response = null;
+    resetToastStatus(state) {
+      state.toast.status = null;
+      state.toast.error = null;
+      state.toast.response = null;
+    },
+    resetCategories(state) {
+      state.categories = [];
+      state.toast.status = null;
+      state.toast.response = null;
     },
     filterCategory(state, { payload }) {
       state.categories = state.allCategories.filter((category) => {
@@ -68,6 +110,12 @@ export const cateogrySlice = createSlice({
           return stringValue.includes(String(payload).toLowerCase());
         });
       });
+    },
+    setPage(state, { payload }) {
+      state.pagination.currentPage = payload;
+    },
+    setItemsPerPage(state, { payload }) {
+      state.pagination.itemsPerPage = payload;
     },
     orderCategories(state, { payload }) {
       const { column, direction } = payload;
@@ -97,41 +145,76 @@ export const cateogrySlice = createSlice({
       .addCase(getAllCategories.pending, (state) => {
         state.status = 'loading';
       })
-      .addCase(getAllCategories.fulfilled, (state, action) => {
+      .addCase(getAllCategories.fulfilled, (state, { payload }) => {
+        const { content, itemsPerPage, totalItems, totalPages, currentPage } =
+          payload;
         state.status = 'success';
-        state.categories = action.payload;
-        state.allCategories = action.payload;
+        state.categories = content;
+        state.allCategories = content;
+        state.pagination.currentPage = currentPage;
+        state.pagination.itemsPerPage = itemsPerPage;
+        state.pagination.totalItems = totalItems;
+        state.pagination.totalPages = totalPages;
       })
       .addCase(getAllCategories.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.error.message;
+        state.toast.error = action.error.message;
       })
-      .addCase(createCategory.pending, (state) => {
+      .addCase(getCategoryById.pending, (state) => {
         state.status = 'loading';
       })
+      .addCase(getCategoryById.fulfilled, (state, action) => {
+        state.status = 'success';
+        state.category = action.payload;
+      })
+      .addCase(getCategoryById.rejected, (state, action) => {
+        state.status = 'failed';
+        state.toast.error = action.error.message;
+      })
+      .addCase(createCategory.pending, (state) => {
+        state.toast.status = 'loading';
+      })
       .addCase(createCategory.fulfilled, (state, action) => {
-        state.status = 'created';
-        state.response = action.payload;
+        state.toast.status = 'created';
+        state.toast.response = action.payload;
       })
       .addCase(createCategory.rejected, (state, action) => {
-        state.status = 'failed';
-        state.response = action.payload || 'generic error';
-        state.error = action.error.message;
+        state.toast.status = 'failed';
+        state.toast.response = action.payload || 'generic error';
+        state.toast.error = action.error.message;
+      })
+      .addCase(editCategory.pending, (state) => {
+        state.toast.status = 'loading';
+      })
+      .addCase(editCategory.fulfilled, (state, action) => {
+        state.toast.status = 'created';
+        state.toast.response = action.payload;
+      })
+      .addCase(editCategory.rejected, (state, action) => {
+        state.toast.status = 'failed';
+        state.toast.response = action.payload || 'generic error';
+        state.toast.error = action.error.message;
       })
       .addCase(deleteCategory.fulfilled, (state, action) => {
-        state.status = 'deleted';
-        state.response = action.payload.response || 'generic error';
+        state.toast.status = 'deleted';
+        state.toast.response = action.payload.response || 'generic error';
         state.categories = state.categories.filter(
           (category) => category.id != action.payload.id,
         );
       })
       .addCase(deleteCategory.rejected, (state, action) => {
-        state.status = 'failed';
-        state.response = action.payload || 'generic error';
+        state.toast.status = 'failed';
+        state.toast.response = action.payload || 'generic error';
       });
   },
 });
 
-export const { resetStatus, filterCategory, orderCategories } =
-  cateogrySlice.actions;
+export const {
+  resetToastStatus,
+  resetCategories,
+  filterCategory,
+  orderCategories,
+  setPage,
+  setItemsPerPage,
+} = cateogrySlice.actions;
 export default cateogrySlice.reducer;

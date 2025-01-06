@@ -4,8 +4,10 @@ import { ATTRIBUTES_DATA } from '@/config/links/urls';
 
 export const getAllAttributes = createAsyncThunk(
   'attributes/getAllAttributes',
-  async () => {
-    const response = await axios.get(ATTRIBUTES_DATA.all);
+  async ({ page = 0, size = -1 } = {}) => {
+    const response = await axios.get(ATTRIBUTES_DATA.all, {
+      params: { page, size },
+    });
     response.data.forEach((el) => delete el.productAttributes);
     return response.data;
   },
@@ -16,7 +18,6 @@ export const createAttribute = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(ATTRIBUTES_DATA.create, data);
-      console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.status);
@@ -32,6 +33,11 @@ const initialState = {
   error: null,
   response: null,
   retryAttempt: 0,
+  toast: {
+    status: null,
+    response: null,
+    error: null,
+  },
 };
 
 export const attributeSlice = createSlice({
@@ -43,6 +49,11 @@ export const attributeSlice = createSlice({
       state.error = null;
       state.response = null;
       state.retryAttempt = 0;
+    },
+    resetToastStatus(state) {
+      state.toast.status = null;
+      state.toast.response = null;
+      state.toast.error = null;
     },
     orderAttributes(state, { payload }) {
       const { column, direction } = payload;
@@ -105,6 +116,10 @@ export const attributeSlice = createSlice({
   },
 });
 
-export const { resetStatus, orderAttributes, filterAttribute } =
-  attributeSlice.actions;
+export const {
+  resetStatus,
+  resetToastStatus,
+  orderAttributes,
+  filterAttribute,
+} = attributeSlice.actions;
 export default attributeSlice.reducer;

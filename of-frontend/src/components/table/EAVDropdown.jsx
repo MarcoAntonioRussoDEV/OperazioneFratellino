@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { ExternalLink } from 'lucide-react';
 import PropTypes from 'prop-types';
 
@@ -25,6 +25,7 @@ const EAVDropdown = ({
   dropDownName,
   relateDisplayField,
   relateDisplayValue,
+  className,
 }) => {
   const chevronRef = useRef(null);
   const tc = useTranslateAndCapitalize();
@@ -37,7 +38,11 @@ const EAVDropdown = ({
     <>
       <DropdownMenu onOpenChange={handleOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="text" className="px-0" onClick={handleOpen}>
+          <Button
+            variant="text"
+            className={`px-0 ${className}`}
+            onClick={handleOpen}
+          >
             {tc(dropDownName)}
             <ChevronDownIcon ref={chevronRef} className="duration-200" />
           </Button>

@@ -1,8 +1,11 @@
 package it.operazione_fratellino.of_backend.api;
 
 import it.operazione_fratellino.of_backend.DTOs.CategoryDTO;
+import it.operazione_fratellino.of_backend.entities.Category;
 import it.operazione_fratellino.of_backend.services.CategoryService;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.CategoryConverter;
+import it.operazione_fratellino.of_backend.utils.PaginateResponse;
+import it.operazione_fratellino.of_backend.utils.PaginationUtils;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +30,8 @@ public class ApiCategoryController {
 
 
     @GetMapping("/all")
-    public List<CategoryDTO> getAllCategory() {
-        List<CategoryDTO> categories =
-                categoryService.getAll().stream().map(categoryConverter::toDTO).collect(Collectors.toUnmodifiableList());
-        return categories;
+    public PaginateResponse<CategoryDTO> getAllCategory(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return PaginationUtils.getAllEntities(page, size, categoryService::findAll, categoryConverter::toDTO);
     }
 
     @GetMapping("/by-id/{id}")
@@ -52,10 +53,16 @@ public class ApiCategoryController {
         return categoryService.save(categoryConverter.toEntity(categoryDTO));
     }
 
-    @PostMapping("delete/{categoryID}")
+    @DeleteMapping("delete/{categoryID}")
     public ResponseEntity<String> deleteCategory(@PathVariable Integer categoryID) {
 
         return categoryService.delete(categoryService.findById(categoryID));
 
+    }
+
+    @PatchMapping("edit/{id}")
+    public ResponseEntity<String> editCategory(@RequestBody CategoryDTO categoryDTO,@PathVariable Integer id){
+        Category category = categoryService.findById(id);
+        return categoryService.patch(category,categoryDTO);
     }
 }

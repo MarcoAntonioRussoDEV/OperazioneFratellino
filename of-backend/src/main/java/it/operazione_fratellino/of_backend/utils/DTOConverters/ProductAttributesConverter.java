@@ -8,6 +8,7 @@ import it.operazione_fratellino.of_backend.entities.Attribute;
 import it.operazione_fratellino.of_backend.entities.Product;
 import it.operazione_fratellino.of_backend.entities.ProductAttributes;
 import it.operazione_fratellino.of_backend.services.AttributeService;
+import it.operazione_fratellino.of_backend.services.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,8 @@ public class ProductAttributesConverter {
 
     @Autowired
     private AttributeService attributeService;
+    @Autowired
+    private ProductService productService;
 
     public ProductAttributesDTO toDTO(ProductAttributes productAttributes){
         if (productAttributes == null) {
@@ -29,7 +32,7 @@ public class ProductAttributesConverter {
 
         ProductAttributesDTO dto = new ProductAttributesDTO(
                 productAttributes.getId(),
-                productAttributes.getProduct().getCode(),
+                productAttributes.getProduct().getId(),
                 productAttributes.getAttribute().getName(),
                 productAttributes.getValue());
         return dto;
@@ -45,9 +48,9 @@ public class ProductAttributesConverter {
 
         productAttributes.setId(dto.getId());
         Product product = new Product();
-        product.setCode(dto.getProductCode());
+        product.setCode(productService.findById(dto.getProduct()).getCode());
         productAttributes.setProduct(product);
-        Attribute attribute = new Attribute(dto.getAttributeName());
+        Attribute attribute = new Attribute(dto.getName());
         productAttributes.setAttribute(attribute);
         productAttributes.setValue(dto.getValue());
         return productAttributes;

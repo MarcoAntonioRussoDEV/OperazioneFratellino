@@ -37,6 +37,11 @@ public class Sale {
     private List<ProductSale> productSale;
 
 
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    private Client client;
+
+
     @PrePersist
     private void defaultsValues(){
         this.createdAt = new Date();

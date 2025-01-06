@@ -38,4 +38,6 @@ public class RoleConverter {
             role.setUsers(dto.getUsers().stream().map(userConverter::toEntity).toList());
         return role;
     }
+
+
 }

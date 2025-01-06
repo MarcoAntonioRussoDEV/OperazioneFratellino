@@ -7,15 +7,17 @@ import {
   orderAttributes,
   resetStatus,
 } from '@/redux/attributesSlice';
+import { resetToastStatus } from '@/redux/categorySlice';
 
 const AttributesTable = () => {
   return (
     <CustomTable
-      filterItem={filterAttribute}
-      orderItems={orderAttributes}
+      ENTITY={ATTRIBUTE}
       getItems={getAllAttributes}
       resetItems={resetStatus}
-      entity={ATTRIBUTE}
+      filterItem={filterAttribute}
+      orderItems={orderAttributes}
+      resetToast={resetToastStatus}
     />
   );
 };

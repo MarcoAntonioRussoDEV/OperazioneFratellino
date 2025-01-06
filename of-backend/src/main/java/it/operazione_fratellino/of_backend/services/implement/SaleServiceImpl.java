@@ -1,23 +1,27 @@
 package it.operazione_fratellino.of_backend.services.implement;
 
-import it.operazione_fratellino.of_backend.DTOs.CartDTO;
+import it.operazione_fratellino.of_backend.DTOs.SellCartDTO;
 import it.operazione_fratellino.of_backend.DTOs.RequestSaleDTO;
 import it.operazione_fratellino.of_backend.components.ExceptionHandlerService;
-import it.operazione_fratellino.of_backend.entities.Product;
-import it.operazione_fratellino.of_backend.entities.ProductSale;
+import it.operazione_fratellino.of_backend.entities.*;
 import it.operazione_fratellino.of_backend.repositories.ProductRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductSaleRepository;
-import it.operazione_fratellino.of_backend.entities.Sale;
 import it.operazione_fratellino.of_backend.repositories.SaleRepository;
+import it.operazione_fratellino.of_backend.services.ClientService;
 import it.operazione_fratellino.of_backend.services.ProductService;
 import it.operazione_fratellino.of_backend.services.SaleService;
 import it.operazione_fratellino.of_backend.services.UserService;
+import it.operazione_fratellino.of_backend.utils.LogUtils;
+import it.operazione_fratellino.of_backend.utils.SeverityEnum;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,10 +43,22 @@ public class SaleServiceImpl implements SaleService {
     ProductService productService;
     @Autowired
     ProductRepository productRepository;
+    @Autowired
+    ClientService clientService;
 
     @Override
-    public List<Sale> getAll() {
+    public List<Sale> findAll() {
         return saleRepository.findAll();
+    }
+
+    @Override
+    public Page<Sale> findAll(PageRequest pageRequest) {
+        try {
+            return saleRepository.findAll(pageRequest);
+        } catch (Exception e) {
+            LogUtils.log("Errore durante il recupero della vendita paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            throw new RuntimeException("Errore durante il recupero della vendita paginato", e);
+        }
     }
 
     @Override
@@ -51,29 +67,45 @@ public class SaleServiceImpl implements SaleService {
 
     }
 
+    private Client checkClientExistOrGetNew(String email, String name){
+        Client client = clientService.findByEmail(email);
+        if (client == null){
+            return clientService.saveAndGet(new Client(email, name));
+        }else{
+            User user = userService.findByEmail(email);
+            if(user != null && client.getUser() == null){
+                client.setUser(user);
+            }
+            return client;
+        }
+    }
+
     @Override
+    @Transactional
     public ResponseEntity<String> save(RequestSaleDTO requestSaleDTO) {
-        Sale sale = saleRepository.save(new Sale());
+        Sale sale = new Sale();
+        sale.setClient(checkClientExistOrGetNew(requestSaleDTO.getClientEmail(), requestSaleDTO.getClientName()));
         sale.setUser(userService.findByEmail(requestSaleDTO.getUserEmail()));
         sale.setCreatedAt(new Date());
         List<Product> productList = new ArrayList<>();
         List<ProductSale> productSaleList = new ArrayList<>();
         Double totalPrice = Double.valueOf(0);
         Double profit = Double.valueOf(0);
-        for (CartDTO cartItem : requestSaleDTO.getCart()) {
+        for (SellCartDTO cartItem : requestSaleDTO.getCart()) {
             ProductSale productSale = new ProductSale();
             Product product = productService.findByCode(cartItem.getProducts());
             productList.add(product);
 
             if (product.getStock() - cartItem.getQuantity() < 0) {
-                log.info("LOG: Errore creazione vendita");
-                return exceptionHandlerService.handleException(new RuntimeException("La quantità supera la disponibilità"), "Error");
+                LogUtils.log("SALE.SERVICE: Stock not available", SeverityEnum.ERROR);
+                return new ResponseEntity<>("Impossibile creare la vendita per mancanza di disponibilità", HttpStatus.CONFLICT);
             }
             product.setStock(product.getStock() - cartItem.getQuantity());
             productService.save(product);
 
             productSale.setProduct(product);
             productSale.setQuantity(cartItem.getQuantity());
+            sale = saleRepository.save(sale);
             productSale.setSale(sale);
             ProductSale savedPS = productSaleRepository.save(productSale);
             productSaleList.add(savedPS);

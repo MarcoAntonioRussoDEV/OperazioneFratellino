@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Label, Pie, PieChart, Sector } from 'recharts';
 // import { PieSectorDataItem } from 'recharts/types/polar/Pie';
-import { dateRangeResolver, monthsRangeResolver } from '@/utils/FormatUtils';
+import { dateRangeResolver, monthsRangeResolver } from '@/utils/formatUtils';
 import {
   Card,
   CardContent,
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/chart';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
-import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 
 const prod1Color = 'hsl(var(--chart-1))';
 const prod2Color = 'hsl(var(--chart-2))';

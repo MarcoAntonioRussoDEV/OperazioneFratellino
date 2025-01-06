@@ -13,6 +13,7 @@ import lombok.Setter;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "products")
@@ -24,7 +25,7 @@ public class Product {
 
     // Columns
     @Id
-    @GeneratedValue( strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @NotBlank(message = "Il campo non può essere vuoto")
@@ -46,7 +47,7 @@ public class Product {
     @Column(name = "selling_price")
     private Double sellingPrice;
 
-    private Boolean is_deleted;
+    private Boolean isDeleted;
 
     @ManyToOne
     @JoinColumn(name = "category_id", referencedColumnName = "id")
@@ -55,22 +56,34 @@ public class Product {
 
     private Integer stock;
 
+    @Column(name = "reserved_preorders")
+    @NotNull
+    private Integer reservedPreorders;
+
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<ProductAttributes> productAttributes;
 
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "product", orphanRemoval = true)
+    private List<ProductCart> productCarts;
 
     @Column(name = "created_at")
     private Date createdAt;
 
-    private String image;
+    private byte[] image;
 
     @ManyToMany(mappedBy = "product")
     private List<ProductSale> productSale;
 
+    @OneToMany(mappedBy = "product")
+    private List<ProductPreorder> productPreorders;
+
     @PrePersist
-    private void defaultsValues(){
-        this.is_deleted = false;
+    private void defaultsValues() {
+        this.isDeleted = false;
     }
 
-
+    public void calcReservedPreorders() {
+        int totalReserved = this.productPreorders.stream().filter(productPreorder -> Objects.equals(productPreorder.getPreorder().getStatus().getValue(), "PENDING")).mapToInt(ProductPreorder::getQuantity).sum();
+        this.setReservedPreorders(totalReserved);
+    }
 }

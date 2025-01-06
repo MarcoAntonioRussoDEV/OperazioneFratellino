@@ -5,6 +5,7 @@ import it.operazione_fratellino.of_backend.DTOs.ProductDTO;
 import it.operazione_fratellino.of_backend.DTOs.RequestProductAttributesDTO;
 import it.operazione_fratellino.of_backend.DTOs.RequestProductDTO;
 import it.operazione_fratellino.of_backend.entities.Attribute;
+import it.operazione_fratellino.of_backend.entities.Cart;
 import it.operazione_fratellino.of_backend.entities.Product;
 import it.operazione_fratellino.of_backend.entities.ProductAttributes;
 import it.operazione_fratellino.of_backend.repositories.AttributeRepository;
@@ -43,7 +44,9 @@ public class ProductConverter {
         dto.setSellingPrice(product.getSellingPrice());
         dto.setCategory(product.getCategory() != null ? product.getCategory().getId() : null);
         dto.setStock(product.getStock());
-//        dto.setIs_deleted(product.getIs_deleted());
+        dto.setReservedPreorders(product.getReservedPreorders());
+
+        dto.setIsDeleted(product.getIsDeleted());
         dto.setCreatedAt(product.getCreatedAt());
         dto.setImage(product.getImage());
         dto.setAttributes(
@@ -68,7 +71,8 @@ public class ProductConverter {
         product.setPurchasePrice(dto.getSellingPrice());
         product.setSellingPrice(dto.getSellingPrice());
         product.setStock(dto.getStock());
-//        product.setIs_deleted(dto.getIs_deleted());
+        product.setReservedPreorders(dto.getReservedPreorders());
+        product.setIsDeleted(dto.getIsDeleted());
         product.setCreatedAt(dto.getCreatedAt());
         product.setImage(dto.getImage());
 

@@ -1,35 +1,54 @@
-import { capitalize } from './FormatUtils';
+import { capitalize } from './formatUtils';
 import { BadgeCheck, CircleX, TriangleAlert } from 'lucide-react';
 
-const STATUS = {
+export const STATUS_ENUM = {
   SUCCESS: 'success',
-  FAILED: 'failed',
+  CREATED: 'created',
+  CONVERTED: 'converted',
+  FULFILLED: 'fulfilled',
+  RESET: 'reset',
+  ADDED: 'added',
   LOADING: 'loading',
   GENERIC_ERROR: 'generic error',
   WARNING: 'warning',
-  CREATED: 'created',
+  FAILED: 'failed',
   DELETED: 'deleted',
 };
 
 export default function iconToast(status, response) {
-  if (response === STATUS.GENERIC_ERROR) {
-    status = STATUS.WARNINGN;
+  if (response === STATUS_ENUM.GENERIC_ERROR) {
+    status = STATUS_ENUM.WARNING;
   }
+
+  switch (status) {
+    case STATUS_ENUM.CREATED:
+      status = STATUS_ENUM.SUCCESS;
+      break;
+    case STATUS_ENUM.FULFILLED:
+      status = STATUS_ENUM.SUCCESS;
+      break;
+    case STATUS_ENUM.CONVERTED:
+      status = STATUS_ENUM.SUCCESS;
+      break;
+    case STATUS_ENUM.ADDED:
+      status = STATUS_ENUM.SUCCESS;
+      break;
+    case STATUS_ENUM.RESET:
+      status = STATUS_ENUM.SUCCESS;
+      break;
+  }
+
   let icon;
   switch (status) {
-    case STATUS.SUCCESS: {
+    case STATUS_ENUM.SUCCESS: {
       icon = <BadgeCheck />;
       break;
     }
-    case STATUS.CREATED: {
+    case STATUS_ENUM.DELETED: {
       icon = <BadgeCheck />;
       break;
     }
-    case STATUS.DELETED: {
-      icon = <BadgeCheck />;
-      break;
-    }
-    case STATUS.FAILED: {
+    case STATUS_ENUM.FAILED: {
       icon = <CircleX />;
       break;
     }

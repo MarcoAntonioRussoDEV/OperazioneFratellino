@@ -1,5 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { UserRound } from 'lucide-react';
+import { loadLocale } from './localeUtils';
+import i18n from '../../i18n';
+import { format } from 'date-fns';
 
 export function capitalize(string) {
   if (typeof string === 'string') {
@@ -33,16 +36,21 @@ export const extractLastCode = (array, categoryCode) => {
   return lastCode !== undefined ? parseInt(lastCode) : 0;
 };
 
-export const generateProductCode = (array, categoryCode) => {
-  return categoryCode + codify(extractLastCode(array, categoryCode) + 1);
+export const generateProductCode = (/* array */ category, categoryCode) => {
+  // return categoryCode + codify(extractLastCode(array, categoryCode) + 1);
+  return categoryCode + codify(category.lastCode + 1);
 };
 
 export const usernameInitials = (username) => {
-  return username
+  let initials = username
+    .trim()
     .split(' ')
-    .map((el) => el[0])
-    .splice(0, 2)
-    .join('');
+    .map((el) => el[0].toUpperCase());
+  if (initials.length > 1) {
+    return initials.splice(0, 2).join('');
+  } else {
+    return initials.join('');
+  }
 };
 
 export const toHSL = (percentages) => {
@@ -77,4 +85,8 @@ export const setCurrentMonth = () => {
     from: firstCurrentMonth,
     to: new Date(),
   };
+};
+
+export const formatDate = (date) => {
+  return format(date, 'dd/MM/yyyy - hh:mm');
 };

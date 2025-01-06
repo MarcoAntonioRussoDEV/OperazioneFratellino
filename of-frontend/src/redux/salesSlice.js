@@ -1,20 +1,29 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { axios, retryAttempt } from '@/config/axios/axiosConfig';
 import { SALES_DATA, USER_DATA } from '@/config/links/urls';
-import { capitalize, setCurrentMonth } from '@/utils/FormatUtils';
+import { capitalize, setCurrentMonth } from '@/utils/formatUtils';
 
-export const getAllSales = createAsyncThunk('sales/getAllSales', async () => {
-  const response = await axios.get(SALES_DATA.all);
+export const getAllSales = createAsyncThunk(
+  'sales/getAllSales',
+  async ({ page = 0, size = -1 } = {}) => {
+    const response = await axios.get(SALES_DATA.all, {
+      params: { page, size },
+    });
+    const { content, currentPage, itemsPerPage, totalItems, totalPages } =
+      response.data;
+    const sales = content.map((sale) => {
+      return { ...sale, sendDownloadMail: 'SendMail' };
+    });
 
-  return response.data;
-});
+    return { sales, currentPage, itemsPerPage, totalItems, totalPages };
+  },
+);
 
 export const createSale = createAsyncThunk(
   'sales/createSale',
   async (data, { rejectWithValue }) => {
     try {
       const response = await axios.post(SALES_DATA.create, data);
-      console.log(response);
       return response.data;
     } catch (error) {
       console.log(error.status);
@@ -56,8 +65,8 @@ export const getMostSoldProduct = (sales) => {
     .splice(0, 5);
 };
 
-export const filterSale = createAsyncThunk(
-  'sales/filterSale',
+export const filterSales = createAsyncThunk(
+  'sales/filterSales',
   async (data, { getState, rejectWithValue }) => {
     const state = getState();
     const allSales = state.sales.allSales;
@@ -146,7 +155,7 @@ export const initializeSalesData = createAsyncThunk(
   'sales/initializeSalesData',
   async (_, { dispatch }) => {
     dispatch(resetStatus());
-    await dispatch(getAllSales()).unwrap();
+    await dispatch(getAllSales({ page: 0, size: -1 })).unwrap();
 
     const currentMonthRange = setCurrentMonth();
     dispatch(getAllSalesDateRange(currentMonthRange));
@@ -165,6 +174,17 @@ const initialState = {
   profit: 0,
   gainsChartData: [{}],
   monthsGainsChartData: [],
+  pagination: {
+    currentPage: 0,
+    itemsPerPage: 10,
+    totalItems: 0,
+    totalPages: 0,
+  },
+  toast: {
+    status: null,
+    error: null,
+    response: null,
+  },
 };
 
 export const salesSlice = createSlice({
@@ -178,6 +198,22 @@ export const salesSlice = createSlice({
       state.retryAttempt = 0;
       state.sales = [];
       state.allSales = [];
+    },
+    resetToastStatus(state) {
+      state.toast.status = null;
+      state.toast.error = null;
+      state.toast.response = null;
+    },
+    resetSales(state) {
+      state.sales = [];
+      state.error = null;
+      state.response = null;
+    },
+    setPage(state, { payload }) {
+      state.pagination.currentPage = payload;
+    },
+    setItemsPerPage(state, { payload }) {
+      state.pagination.itemsPerPage = payload;
     },
     orderSales(state, { payload }) {
       const { column, direction } = payload;
@@ -226,10 +262,17 @@ export const salesSlice = createSlice({
         state.status = 'loading';
         state.retryAttempt = retryAttempt;
       })
-      .addCase(getAllSales.fulfilled, (state, action) => {
+      .addCase(getAllSales.fulfilled, (state, { payload }) => {
+        const { sales, currentPage, itemsPerPage, totalItems, totalPages } =
+          payload;
         state.status = 'success';
-        state.sales = action.payload;
-        state.allSales = action.payload;
+        state.sales = sales;
+        state.allSales = sales;
+        state.pagination.currentPage = currentPage;
+        state.pagination.itemsPerPage = itemsPerPage;
+        state.pagination.totalItems = totalItems;
+        state.pagination.totalPages = totalPages;
+
         // state.mostSoldProducts = getMostSoldProduct(state.sales);
         // handleDateRangeSales(state, setCurrentMonth());
         // monthsGainsChartDataResolver(state, setCurrentMonth());
@@ -262,7 +305,7 @@ export const salesSlice = createSlice({
         state.status = 'failed';
         state.response = action.payload || 'generic error';
       })
-      .addCase(filterSale.fulfilled, (state, { payload }) => {
+      .addCase(filterSales.fulfilled, (state, { payload }) => {
         state.status = 'success';
         state.sales = payload;
       });
@@ -271,9 +314,13 @@ export const salesSlice = createSlice({
 
 export const {
   resetStatus,
+  resetSales,
+  resetToastStatus,
   orderSales,
   dateRangeSales,
   getMonthsGainsChartData,
   getAllSalesDateRange,
+  setPage,
+  setItemsPerPage,
 } = salesSlice.actions;
 export default salesSlice.reducer;

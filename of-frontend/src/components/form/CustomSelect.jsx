@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import PropTypes from 'prop-types';
 
-import { capitalize } from '@/utils/FormatUtils';
+import { capitalize } from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
 import { Spinner } from '../ui/spinner';
 import { RefreshCcw } from 'lucide-react';

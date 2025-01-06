@@ -18,7 +18,7 @@ import {
   dateRangeResolver,
   monthsRangeResolver,
   useTranslateAndCapitalize,
-} from '@/utils/FormatUtils';
+} from '@/utils/formatUtils';
 
 const totalGainColor = 'hsl(var(--chart-1))';
 const profitColor = 'hsl(var(--chart-3))';

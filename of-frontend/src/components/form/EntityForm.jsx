@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { capitalize } from '@/utils/FormatUtils';
+import { capitalize } from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useDispatch, useSelector } from 'react-redux';

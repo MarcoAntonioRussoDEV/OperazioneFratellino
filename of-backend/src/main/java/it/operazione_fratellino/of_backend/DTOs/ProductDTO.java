@@ -23,9 +23,11 @@ public class ProductDTO {
     private Double sellingPrice;
     private Integer category;
     private Integer stock;
+    private Integer reservedPreorders;
     private List<ProductAttributesDTO> attributes;
-//    private Boolean is_deleted;
+    private List<ProductCartDTO> carts;
+    private Boolean isDeleted;
     private Date createdAt;
-    private String image;
+    private byte[] image;
 
 }

@@ -16,7 +16,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useDispatch, useSelector } from 'react-redux';
@@ -24,25 +24,29 @@ import PropTypes from 'prop-types';
 import { CATEGORY } from '@/config/entity/entities';
 import SimpleInput from '@/components/form/SimpleInput';
 import withFormContext from '@/components/HOC/withFormContext';
-import { createCategory } from '@/redux/categorySlice';
+import { createCategory, editCategory } from '@/redux/categorySlice';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAppHooks, useToastHooks } from '@/hooks/useAppHooks';
 const EnhancedSimpleInput = withFormContext(SimpleInput);
-const CategoryForm = () => {
-  const { t } = useTranslation();
+const CategoryForm = ({ category }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { from, formData } = location.state || {};
+  const { t, tc, dispatch } = useAppHooks();
+  const { toast } = useToast();
   const {
     categories,
     status: categoriesStatus,
     error: categoriesError,
     response: itemResponse,
   } = useSelector((state) => state.categories);
-  const dispatch = useDispatch();
-  const { toast } = useToast();
-  const tc = useTranslateAndCapitalize();
 
   const methods = useForm({
     resolver: zodResolver(CATEGORY.formSchema),
     defaultValues: CATEGORY.defaultValues,
     mode: 'onChange',
   });
+
   const {
     control,
     handleSubmit,
@@ -53,26 +57,32 @@ const CategoryForm = () => {
     formState: { isValid, errors },
   } = methods;
 
-  useEffect(() => {
-    if (categoriesStatus === 'created' || categoriesStatus === 'failed') {
-      const currentToast = toast(iconToast(categoriesStatus, t(itemResponse)));
-      const timer = setTimeout(() => {
-        dispatch(reset());
-      }, 6000);
-      reset();
-      return () => {
-        clearTimeout(timer);
-        currentToast.dismiss();
-        reset();
-      };
-    }
-  }, [categoriesStatus, categoriesError, itemResponse, toast, dispatch]);
+  useToastHooks(categoriesStatus, ['created', 'failed'], itemResponse, reset);
 
   const onSubmit = (data) => {
     data = { ...data, code: data['code'].toUpperCase() };
-    console.log(data);
-    dispatch(createCategory(data));
+    if (category) {
+      dispatch(editCategory({ id: category.id, category: data }));
+    } else {
+      dispatch(createCategory(data));
+    }
+
+    if (from) {
+      navigate(from, { state: { formData } });
+    }
   };
+
+  const handleValues = async (category) => {
+    const values = await Object.entries(category).map(([key, value]) => {
+      return setValue(key, value);
+    });
+  };
+
+  useEffect(() => {
+    if (category) {
+      handleValues(category);
+    }
+  }, [category]);
 
   return (
     <Form {...methods}>
@@ -88,7 +98,7 @@ const CategoryForm = () => {
           className="mt-10 col-span-3"
           disabled={!isValid}
         >
-          {tc('createCategory')}
+          {category ? tc('category.edit') : tc('createCategory')}
         </Button>
       </form>
     </Form>

@@ -11,6 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class RequestSaleDTO {
 
-    private List<CartDTO> cart;
+    private List<SellCartDTO> cart;
     private String userEmail;
+    private String clientName;
+    private String clientEmail;
 }

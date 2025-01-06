@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { TableCell, TableRow, TableHead } from '@/components/ui/table';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/FormatUtils.js';
+import { TableCell, TableRow } from '@/components/ui/table';
+import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils.js';
 import PropTypes from 'prop-types';
 import { format } from 'date-fns';
 import { loadLocale } from '@/utils/localeUtils.js';
@@ -15,10 +15,14 @@ import EAVDropdown from './EAVDropdown.jsx';
 import { Trash2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Drawer, DrawerTrigger } from '../ui/drawer.jsx';
-import { Button } from '../ui/button.jsx';
 import ImageDrawer from './ImageDrawer.jsx';
+import { hasAccess } from '@/utils/authService.js';
+import { USER_ROLES } from '@/utils/userRoles.js';
+import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import DeleteModal from '../modal/DeleteModal.jsx';
+import { blobToSrc } from '@/utils/imageUtils.js';
 
-const CustomRow = ({ item, entity, deleteItem }) => {
+const CustomRow = ({ item, entity, deleteItem, children, className }) => {
   const tc = useTranslateAndCapitalize();
   const [formattedDates, setFormattedDates] = useState({});
   const [MTOdata, setMTOdata] = useState('');
@@ -49,10 +53,29 @@ const CustomRow = ({ item, entity, deleteItem }) => {
     const response = await axios.get(
       resolveEntityURLS(entity)[stringBuilder] + parameter,
     );
-    setMTOdata(tc(response.data[displayField]));
+    return tc(response.data[displayField]);
   };
+
+  useEffect(() => {
+    const fetchAllMTOData = async () => {
+      const newMTOdata = {};
+      for (const [field, fieldSettings] of Object.entries(entity.fields)) {
+        if (fieldSettings.foreignKey === 'MTO') {
+          newMTOdata[field] = await MTOFetch(
+            fieldSettings.relateFetchField,
+            fieldSettings.relateDisplayField,
+            field,
+            item[field],
+          );
+        }
+      }
+      setMTOdata(newMTOdata);
+    };
+    fetchAllMTOData();
+  }, [item, entity]);
+
   return (
-    <TableRow>
+    <TableRow className={className}>
       {Object.entries(entity.fields)
         .filter((el) => el[1].isTableHead)
         .map(([field, fieldSettings]) => {
@@ -76,7 +99,7 @@ const CustomRow = ({ item, entity, deleteItem }) => {
                     <div className="w-14 h-14 cursor-pointer hover:scale-[1.1]">
                       <img
                         src={item[field]}
-                        alt="product-image"
+                        alt=""
                         className="rounded-lg object-cover h-full w-full"
                       />
                     </div>
@@ -100,6 +123,7 @@ const CustomRow = ({ item, entity, deleteItem }) => {
                 <Component
                   value={item[fieldSettings.props.value]}
                   size={fieldSettings.props.size}
+                  item={item}
                 />
               </TableCell>
             );
@@ -112,6 +136,7 @@ const CustomRow = ({ item, entity, deleteItem }) => {
                   relateEntity={item[field]}
                   dropDownName={field}
                   relateDisplayField={fieldSettings.relateDisplayField}
+                  relateDisplayValue={fieldSettings.relateDisplayValue}
                 />
               </TableCell>
             );
@@ -143,15 +168,9 @@ const CustomRow = ({ item, entity, deleteItem }) => {
             );
             /!* ManyToOne  */;
           } else if (fieldSettings.foreignKey === 'MTO') {
-            MTOFetch(
-              fieldSettings.relateFetchField,
-              fieldSettings.relateDisplayField,
-              field,
-              item[field],
-            );
             return (
               <TableCell key={field} className="text-left">
-                {MTOdata}
+                {MTOdata[field] || <Spinner size="sm" />}
               </TableCell>
             );
             /!* Default  */;
@@ -166,15 +185,19 @@ const CustomRow = ({ item, entity, deleteItem }) => {
           }
         })}
 
+      <TableCell className="text-left">{children}</TableCell>
       {/* DELETE BUTTON  */}
-      {user.role == 'ADMIN' && (
+      {hasAccess(user.role, USER_ROLES.ADMIN) && (
         <TableCell className="text-left">
-          <Trash2
-            onClick={() => {
-              dispatch(deleteItem(item[entity.deleteKey]));
-            }}
-            className="text-destructive cursor-pointer"
-          />
+          <AlertDialog>
+            <AlertDialogTrigger>
+              <Trash2 className="text-destructive cursor-pointer" />
+            </AlertDialogTrigger>
+            <DeleteModal
+              confirmAction={deleteItem}
+              confirmTarget={item[entity.deleteKey]}
+            />
+          </AlertDialog>
         </TableCell>
       )}
     </TableRow>

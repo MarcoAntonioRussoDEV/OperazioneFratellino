@@ -1,0 +1,40 @@
+services:
+  frontend:
+    image: ocrama94/operazione_fratellino:v0.0.1
+    build:
+      context: ./of-frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "443:443"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./of-backend
+      dockerfile: Dockerfile
+    container_name: backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password123
+      MYSQL_DATABASE: operazione_fratellino
+      MYSQL_USER: operazione_fratellino
+      MYSQL_PASSWORD: password123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+volumes:
+  mysql_data:

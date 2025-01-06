@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { axios } from '../../config/axios/axiosConfig';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,7 +6,8 @@ import { getAuthUser } from '@/redux/userSlice';
 import { Input } from '@/components/ui/input';
 import { Label } from '@radix-ui/react-label';
 import { Button } from '@/components/ui/button';
-import { AUTH_DATA, BASE_URL } from '@/config/links/urls';
+import { AUTH_DATA } from '@/config/links/urls';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,6 +15,8 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isAuthenticated } = useSelector((state) => state.user);
+  const tc = useTranslateAndCapitalize();
+  const { user } = useSelector((state) => state.user);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,22 +25,25 @@ const LoginForm = () => {
         email,
         password,
       });
-      console.log(response.data);
-      const { jwt } = response.data;
+      const { jwt, isFirstAccess } = response.data;
       localStorage.setItem('token', jwt);
       localStorage.setItem('isAuthenticated', true);
       dispatch(getAuthUser());
+
+      if (isFirstAccess) {
+        navigate(`/user/${email}`);
+      } else {
+        navigate('/');
+      }
+
       setMessage('Login successful');
     } catch (error) {
-      setMessage('Login failed: ' + error.message);
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('token');
+      setMessage(error.response.data.message);
     }
   };
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
   return (
     <>
       <form
@@ -64,7 +70,7 @@ const LoginForm = () => {
         </div>
         <Button type="submit">Login</Button>
       </form>
-      {message && <p>{message}</p>}
+      {message && <p>{`${tc('error')}: ${tc(message)}`}</p>}
     </>
   );
 };

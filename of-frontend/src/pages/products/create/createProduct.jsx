@@ -1,4 +1,4 @@
-import { capitalize } from '@/utils/FormatUtils';
+import { capitalize } from '@/utils/formatUtils';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import ProductForm from './ProductForm';

@@ -16,21 +16,29 @@ import {
 import { Button } from '@/components/ui/button';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { useTranslation } from 'react-i18next';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { ExternalLink } from 'lucide-react';
 import PropTypes from 'prop-types';
+import { useNavigate } from 'react-router-dom';
 
-const OTMDropdown = ({ relateEntity, dropDownName, relateDisplayField }) => {
+const OTMDropdown = ({
+  relateEntity,
+  dropDownName,
+  relateDisplayField,
+  relateDisplayValue,
+  targetNavigate,
+}) => {
   const chevronRef = useRef(null);
   const tc = useTranslateAndCapitalize();
+  const navigate = useNavigate();
   const handleOpen = () => {
     chevronRef.current.classList.toggle('rotate-[-180deg]');
   };
 
   const sortedRelateEntity = [...relateEntity].sort((a, b) => a.id - b.id);
 
-  const handleShowRelate = (id) => {
-    console.log(id);
+  const handleShowRelate = (value) => {
+    navigate(`/${targetNavigate}/${value}`);
   };
   return (
     <>
@@ -49,11 +57,19 @@ const OTMDropdown = ({ relateEntity, dropDownName, relateDisplayField }) => {
             return (
               <DropdownMenuItem
                 key={key}
-                onClick={() => handleShowRelate(value.id)}
+                onClick={() =>
+                  handleShowRelate(
+                    value[relateDisplayValue] ?? value[relateDisplayField],
+                  )
+                }
               >
                 {tc(value[relateDisplayField])}
                 <DropdownMenuShortcut>
-                  <ExternalLink />
+                  {value[relateDisplayValue] ? (
+                    value[relateDisplayValue]
+                  ) : (
+                    <ExternalLink />
+                  )}
                 </DropdownMenuShortcut>
               </DropdownMenuItem>
             );

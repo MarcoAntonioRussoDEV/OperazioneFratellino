@@ -2,10 +2,10 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
 let retryAttempt = 0;
-let baseURL = 'https://localhost:8443';
-const currentURL = window.location.hostname;
-if (currentURL != 'localhost') {
-  baseURL = 'https://192.168.0.212:8443/';
+let baseURL = import.meta.env.VITE_API_URL || 'https://localhost:8080/api/';
+
+if (location.hostname === 'localhost') {
+  baseURL = 'https://localhost:8443/api/';
 }
 
 const instance = axios.create({
@@ -22,6 +22,7 @@ instance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => {
@@ -33,10 +34,17 @@ instance.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    if (error.response.status === 401 || error.response.status === 403) {
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    // console.log('error: ', error);
+    if (error.response.status === 401) {
+      const unauthorizedEvent = new CustomEvent('unauthorized', {
+        detail: { error: error.response },
+      });
+      window.dispatchEvent(unauthorizedEvent);
+    } else if (error.response.status === 403) {
+      const forbiddenEvent = new CustomEvent('forbidden', {
+        detail: { error: error.response },
+      });
+      window.dispatchEvent(forbiddenEvent);
     }
     return Promise.reject(error);
   },

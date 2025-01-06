@@ -11,7 +11,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useTranslateAndCapitalize } from '@/utils/FormatUtils';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
 
 export default function DatePicker({ date, setDate, className }) {

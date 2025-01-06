@@ -11,7 +11,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name = "product_attributes")
+@Table(name = "product_attributes", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"product_id", "attribute_name", "value"})
+})
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProductAttributes {
@@ -20,7 +22,7 @@ public class ProductAttributes {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "product_code", referencedColumnName = "code")
+    @JoinColumn(name = "product_id", referencedColumnName = "id")
     @JsonBackReference
     private Product product;
 

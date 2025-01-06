@@ -1,33 +1,21 @@
 package it.operazione_fratellino.of_backend.api;
 
-import it.operazione_fratellino.of_backend.DTOs.ProductAttributesDTO;
 import it.operazione_fratellino.of_backend.DTOs.ProductDTO;
 import it.operazione_fratellino.of_backend.DTOs.RequestProductDTO;
-import it.operazione_fratellino.of_backend.entities.Product;
-import it.operazione_fratellino.of_backend.entities.ProductAttributes;
 import it.operazione_fratellino.of_backend.services.AttributeService;
 import it.operazione_fratellino.of_backend.services.ProductAttributesService;
 import it.operazione_fratellino.of_backend.services.ProductService;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.ProductAttributesConverter;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.ProductConverter;
+import it.operazione_fratellino.of_backend.utils.PaginateResponse;
+import it.operazione_fratellino.of_backend.utils.PaginationUtils;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Log
 @RestController
@@ -46,15 +34,9 @@ public class ApiProductController {
     private ProductAttributesConverter productAttributesConverter;
 
     @GetMapping("/all")
-    public List<ProductDTO> getAllProducts(@RequestParam(required = false) String column, @RequestParam(required =
-            false) String direction) {
-        List<ProductDTO> products;
-        if (column != null && direction != null) {
-            products = productService.getAll(column, direction).stream().filter(product -> !product.getIs_deleted()).map(productConverter::toDTO).collect(Collectors.toList());
-        } else {
-            products = productService.getAll().stream().filter(product -> !product.getIs_deleted()).map(productConverter::toDTO).collect(Collectors.toList());
-        }
-        return products;
+    public PaginateResponse<ProductDTO> getAllProducts(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        return PaginationUtils.getAllEntities(page, size, productService::findAll, productConverter::toDTO);
+
     }
 
 
@@ -86,33 +68,40 @@ public class ApiProductController {
 
     }
 
-    @GetMapping("/get-image/{productCode}")
-    @ResponseBody
-    public ResponseEntity<Resource> getImage(@PathVariable String productCode) {
-        try {
-            // Percorso della directory di upload
-            Path filePath = Paths.get(productService.findByCode(productCode).getImage());
+//    @GetMapping("/get-image/{productCode}")
+//    @ResponseBody
+//    public ResponseEntity<Resource> getImage(@PathVariable String productCode) {
+//        try {
+//            // Percorso della directory di upload
+//            Path filePath = Paths.get(productService.findByCode(productCode).getImage());
+//
+//            Resource resource = new UrlResource(filePath.toUri());
+//            if (!resource.exists()) {
+//                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//            }
+//
+//            // Determina il tipo di contenuto
+//            String contentType = Files.probeContentType(filePath);
+//
+//            return ResponseEntity.ok().header("Content-Type", contentType != null ? contentType :
+//                    "application/octet" + "-stream").body(resource);
+//        } catch (IOException e) {
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
-            Resource resource = new UrlResource(filePath.toUri());
-            if (!resource.exists()) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
 
-            // Determina il tipo di contenuto
-            String contentType = Files.probeContentType(filePath);
-
-            return ResponseEntity.ok().header("Content-Type", contentType != null ? contentType :
-                    "application/octet" + "-stream").body(resource);
-        } catch (IOException e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
-
-    @PostMapping("/delete/{productCode}")
+    @DeleteMapping("/delete/{productCode}")
     public ResponseEntity<String> deleteProduct(@PathVariable String productCode) {
         return productService.delete(productService.findByCode(productCode));
     }
+
+    @PatchMapping("/disable/{productCode}")
+    public ResponseEntity<String> disableProduct(@PathVariable String productCode) {
+        return productService.toggleDeleted(productService.findByCode(productCode));
+    }
+
+
 
 
 }

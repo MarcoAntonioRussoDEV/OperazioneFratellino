@@ -22,6 +22,7 @@ const buttonVariants = cva(
         link: 'text-primary underline-offset-4 hover:underline',
         text: 'text-primary focus-visible:ring-0',
         textDestructive: 'text-destructive focus-visible:ring-0',
+        dropdown: 'flex justify-between gap-4',
       },
       size: {
         default: 'h-9 px-4 py-2',

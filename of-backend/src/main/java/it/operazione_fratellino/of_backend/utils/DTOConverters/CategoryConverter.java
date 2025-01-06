@@ -18,6 +18,7 @@ public class CategoryConverter {
         dto.setId(category.getId());
         dto.setCode(category.getCode());
         dto.setName(category.getName());
+        dto.setLastCode(category.getLastCode());
         dto.setProducts(category.getProducts().stream().map(productConverter::toDTO).collect(Collectors.toList()));
         return dto;
     }

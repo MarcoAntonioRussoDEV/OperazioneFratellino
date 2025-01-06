@@ -20,10 +20,21 @@ import {
   fetchCategoriesCode,
   SALES_DATA,
   PRODUCTS_DATA,
+  CITY_DATA,
+  ROLE_DATA,
+  USER_DATA,
+  CLIENT_DATA,
+  STATUS_DATA,
 } from '../links/urls';
 import QrCodeGenerator from '@/components/QRCodeGenerator/QrCodeGenerator';
+import SendMail from '@/components/SendMail';
 
 const id = {
+  isFillable: false,
+  isTableHead: true,
+};
+
+const actions = {
   isFillable: false,
   isTableHead: true,
 };
@@ -41,10 +52,12 @@ export const CATEGORY = {
     },
     products: {
       isFillable: false,
+      relateEntity: 'products',
       relateDisplayField: 'code',
       isTableHead: true,
       foreignKey: 'OTM',
     },
+    actions,
   },
   store: 'categories',
   formSchema: z.object({
@@ -57,7 +70,7 @@ export const CATEGORY = {
   },
   deleteKey: 'id',
 };
-export const components = { QrCodeGenerator };
+export const components = { QrCodeGenerator, SendMail };
 export const PRODUCT = {
   fields: {
     id,
@@ -97,6 +110,10 @@ export const PRODUCT = {
       isFillable: true,
       isTableHead: true,
     },
+    reservedPreorders: {
+      isFillable: false,
+      isTableHead: true,
+    },
     category: {
       isFillable: true,
       isTableHead: true,
@@ -107,7 +124,7 @@ export const PRODUCT = {
     attributes: {
       isFillable: true,
       isTableHead: true,
-      relateDisplayField: 'attributeName',
+      relateDisplayField: 'name',
       relateDisplayValue: 'value',
       foreignKey: 'EAV',
     },
@@ -120,11 +137,8 @@ export const PRODUCT = {
       isFillable: true,
       isTableHead: true,
       type: 'image',
-      drawer: {
-        title: 'name',
-        description: 'code',
-      },
     },
+    actions,
   },
   store: 'products',
   formSchema: z
@@ -266,6 +280,13 @@ export const SALES = {
       relateFetchField: 'email',
       foreignKey: 'MTO',
     },
+    client: {
+      isFillable: true,
+      isTableHead: true,
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+      foreignKey: 'MTO',
+    },
     sellingPrice: {
       isFillable: false,
       isTableHead: true,
@@ -281,44 +302,53 @@ export const SALES = {
       isTableHead: true,
       type: 'date',
     },
+    sendDownloadMail: {
+      isFillable: false,
+      isTableHead: true,
+      type: 'component',
+      props: {
+        value: 'code',
+        size: '48',
+      },
+    },
   },
   store: 'sales',
   formSchema: z
     .object({
-      products: z
-        .string()
-        // .min(7)
-        // .max(7)
-        .refine(
-          async (code) => {
+      products: z.string().refine(
+        async (code) => {
+          if (code) {
             try {
               const response = await axios.get(PRODUCTS_DATA.byCode + code);
               return true;
             } catch (error) {
               return false;
             }
-          },
-          { message: 'productNotFound' },
-        ),
+          }
+        },
+        { message: 'productNotFound' },
+      ),
       quantity: z.coerce.number().positive(),
     })
     .superRefine(
       async (values, context) => {
         const { products, quantity } = values;
-
-        try {
-          const response = await axios.get(PRODUCTS_DATA.byCode + products);
-          if (quantity > response.data.stock) {
+        if (products && quantity) {
+          try {
+            const response = await axios.get(PRODUCTS_DATA.byCode + products);
+            if (quantity > response.data.stock) {
+              context.addIssue({
+                path: ['quantity'],
+                message:
+                  'La quantità richiesta supera la quantità disponibile.',
+              });
+            }
+          } catch (error) {
             context.addIssue({
-              path: ['quantity'],
-              message: 'La quantità richiesta supera la quantità disponibile.',
+              path: ['products'],
+              message: 'Errore nel recupero del prodotto',
             });
           }
-        } catch (error) {
-          context.addIssue({
-            path: ['products'],
-            message: 'Errore nel recupero del prodotto',
-          });
         }
       },
       { message: 'productNotFound' },
@@ -333,7 +363,19 @@ export const SALES = {
 
 export const USER = {
   fields: {
-    id,
+    id: {
+      isFillable: false,
+      isTableHead: false,
+    },
+    avatar: {
+      isFillable: true,
+      isTableHead: true,
+      type: 'image',
+      drawer: {
+        title: 'name',
+        description: 'email',
+      },
+    },
     name: {
       isFillable: true,
       isTableHead: true,
@@ -346,6 +388,10 @@ export const USER = {
       isFillable: true,
       isTableHead: false,
     },
+    phone: {
+      isFillable: true,
+      isTableHead: true,
+    },
     city: {
       isFillable: true,
       isTableHead: true,
@@ -354,27 +400,203 @@ export const USER = {
       isFillable: true,
       isTableHead: true,
     },
-    avatar: {
-      isFillable: true,
-      isTableHead: true,
+    cart: {
+      isFillable: false,
+      isTableHead: false,
     },
     createdAt: {
-      isFillable: true,
+      isFillable: false,
       isTableHead: true,
-      type: 'data',
+      type: 'date',
     },
+    isDeleted: {
+      isFillable: false,
+      isTableHead: false,
+    },
+    isFirstAccess: {
+      isFillable: false,
+      isTableHead: false,
+    },
+    actions,
   },
   store: 'users',
   defaultValues: {
-    // name: '',
-    // email: '',
-    // password: '',
-    // city: '',
-    // role: 'USER',
+    name: '',
+    email: '',
+    password: '',
+    city: '',
+    role: 'USER',
     avatar: '',
-    // createdAt: '',
+    createdAt: '',
   },
   formSchema: z.object({
     avatar: z.any(),
+    name: z.string().min(4),
+    email: z.string().email(),
+    phone: z.string().min(10).max(10),
+    password: z.string().min(8),
+    city: z.string().min(4),
+    role: z
+      .string()
+      .min(2)
+      .refine(async (roleName) => {
+        try {
+          const response = axios.get(ROLE_DATA.byName + roleName);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }),
   }),
+  deleteKey: 'email',
+};
+
+export const PREORDER = {
+  fields: {
+    id,
+    products: {
+      isFillable: false,
+      relateDisplayField: 'product',
+      isTableHead: true,
+      foreignKey: 'OTM',
+      relateDisplayValue: 'quantity',
+      relateEntity: 'products',
+    },
+    user: {
+      isTableHead: true,
+      isFillable: true,
+      foreignKey: 'MTO',
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+    },
+    client: {
+      isTableHead: true,
+      isFillable: true,
+      foreignKey: 'MTO',
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+    },
+    totalPrice: {
+      isTableHead: true,
+      isFillable: false,
+    },
+    status: {
+      isTableHead: true,
+      isFillable: true,
+    },
+    createdAt: {
+      isTableHead: true,
+      isFillable: false,
+      type: 'date',
+    },
+    actions,
+  },
+  store: 'preorders',
+  defaultValues: {
+    user: '',
+    client: '',
+    totalPrice: 0,
+    status: 'PENDING',
+    createdAt: '',
+  },
+  formSchema: z.object({
+    user: z
+      .string()
+      .email()
+      .refine(async (email) => {
+        try {
+          const response = await axios.get(USER_DATA.byEmail + email);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }),
+    client: z
+      .string()
+      .email()
+      .refine(async (email) => {
+        try {
+          const response = await axios.get(CLIENT_DATA.byEmail + email);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      }),
+    totalPrice: z.coerce.number(),
+    status: z.string().refine(async (value) => {
+      try {
+        const response = await axios.get(STATUS_DATA.byValue + value);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }),
+  }),
+  deleteKey: 'id',
+};
+
+export const PREORDER_FORM = {
+  fields: {
+    id,
+    products: {
+      isFillable: true,
+      isTableHead: true,
+      relateDisplayField: 'product',
+      relateDisplayValue: 'quantity',
+      foreignKey: 'EAV',
+    },
+    quantity: {
+      isFillable: true,
+      isTableHead: false,
+      type: 'number',
+    },
+    user: {
+      isFillable: false,
+      isTableHead: true,
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+      foreignKey: 'MTO',
+    },
+    clientName: {
+      isFillable: true,
+      isTableHead: true,
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+      foreignKey: 'MTO',
+    },
+    clientEmail: {
+      isFillable: true,
+      isTableHead: true,
+      relateDisplayField: 'name',
+      relateFetchField: 'email',
+      foreignKey: 'MTO',
+    },
+  },
+  store: 'sales',
+  formSchema: z.object({
+    product: z.string().refine(
+      async (code) => {
+        if (code) {
+          try {
+            const response = await axios.get(PRODUCTS_DATA.byCode + code);
+            return true;
+          } catch (error) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      },
+
+      { message: 'productNotFound' },
+    ),
+    quantity: z.coerce.number().positive(),
+  }),
+
+  defaultValues: {
+    products: '',
+    quantity: 1,
+    status: 'PENDING',
+  },
+  deleteKey: 'id',
 };

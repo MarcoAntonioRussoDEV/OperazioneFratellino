@@ -7,8 +7,12 @@ import it.operazione_fratellino.of_backend.entities.ProductAttributes;
 import it.operazione_fratellino.of_backend.repositories.AttributeRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductAttributesRepository;
 import it.operazione_fratellino.of_backend.services.ProductAttributesService;
+import it.operazione_fratellino.of_backend.utils.LogUtils;
+import it.operazione_fratellino.of_backend.utils.SeverityEnum;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -27,8 +31,18 @@ public class ProductAttributesServiceImpl implements ProductAttributesService {
     ExceptionHandlerService exceptionHandlerService;
 
     @Override
-    public List<ProductAttributes> getAll() {
+    public List<ProductAttributes> findAll() {
         return productAttributesRepository.findAll();
+    }
+
+    @Override
+    public Page<ProductAttributes> findAll(PageRequest pageRequest) {
+        try {
+             return productAttributesRepository.findAll(pageRequest);
+        } catch (Exception e) {
+            LogUtils.log("Errore durante il recupero del product_attributes paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            throw new RuntimeException("Errore durante il recupero del product_attributes paginato", e);
+        }
     }
 
     @Override
