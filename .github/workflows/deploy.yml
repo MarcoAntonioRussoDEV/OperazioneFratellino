@@ -25,6 +25,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-          context: .
+          context: ./of-frontend 
+          file: ./of-frontend/Dockerfile
           push: true
           tags: ocrama94/operazione_fratellino:v0.0.1
