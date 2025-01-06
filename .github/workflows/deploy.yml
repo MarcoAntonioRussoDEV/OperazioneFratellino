@@ -27,8 +27,8 @@ jobs:
                   ${{ runner.os }}-node-
 
             - name: Set environment variables 
-              run: echo "NODE_PATH=./of-frontend/node_modules" >> $GITHUB_ENV
-
+              run: echo "NODE_PATH=$(pwd)/of-frontend/node_modules" >> $GITHUB_ENV
+              
             - name: Install dependencies
               run: cd ./of-frontend && npm install
 
