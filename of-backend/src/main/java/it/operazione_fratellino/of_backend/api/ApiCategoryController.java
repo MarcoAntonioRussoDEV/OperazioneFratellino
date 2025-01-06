@@ -48,8 +48,6 @@ public class ApiCategoryController {
 
     @PostMapping("create")
     public ResponseEntity<String> createCategoty(@RequestBody CategoryDTO categoryDTO) {
-        categoryDTO.setCode(categoryDTO.getCode().toUpperCase());
-
         return categoryService.save(categoryConverter.toEntity(categoryDTO));
     }
 

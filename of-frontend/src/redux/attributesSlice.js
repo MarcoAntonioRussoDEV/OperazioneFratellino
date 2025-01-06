@@ -8,7 +8,7 @@ export const getAllAttributes = createAsyncThunk(
     const response = await axios.get(ATTRIBUTES_DATA.all, {
       params: { page, size },
     });
-    response.data.forEach((el) => delete el.productAttributes);
+    // response.data.forEach((el) => delete el.productAttributes);
     return response.data;
   },
 );
@@ -33,6 +33,12 @@ const initialState = {
   error: null,
   response: null,
   retryAttempt: 0,
+  pagination: {
+    currentPage: 0,
+    itemsPerPage: 10,
+    totalItems: 0,
+    totalPages: 0,
+  },
   toast: {
     status: null,
     response: null,
@@ -92,10 +98,18 @@ export const attributeSlice = createSlice({
         state.status = 'loading';
         state.retryAttempt = retryAttempt;
       })
-      .addCase(getAllAttributes.fulfilled, (state, action) => {
+      .addCase(getAllAttributes.fulfilled, (state, { payload }) => {
+        const { content, itemsPerPage, totalItems, totalPages, currentPage } =
+          payload;
         state.status = 'success';
-        state.attributes = action.payload;
-        state.allAttributes = action.payload;
+        state.attributes = content;
+        state.allAttributes = content;
+        state.pagination = {
+          currentPage,
+          itemsPerPage,
+          totalItems,
+          totalPages,
+        };
       })
       .addCase(getAllAttributes.rejected, (state, action) => {
         state.status = 'failed';

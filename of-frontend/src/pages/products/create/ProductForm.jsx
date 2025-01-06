@@ -34,7 +34,12 @@ import { Button } from '@/components/ui/button';
 import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { ATTRIBUTE, CATEGORY, PRODUCT } from '@/config/entity/entities';
-import { resetStatus, createProduct, productSlice } from '@/redux/productSlice';
+import {
+  resetStatus,
+  createProduct,
+  productSlice,
+  resetToastStatus,
+} from '@/redux/productSlice';
 import { Textarea } from '@/components/ui/textarea';
 import { getAllCategories } from '@/redux/categorySlice';
 import { getAllAttributes } from '@/redux/attributesSlice';
@@ -162,7 +167,13 @@ const ProductForm = ({ product }) => {
     setValue('code', newProductCode);
   }, [setValue, selectedCategoryCode, newProductCode]);
 
-  useToastHooks(productsStatus, ['created', 'failed'], productsResponse, reset);
+  useToastHooks(
+    productsStatus,
+    ['created', 'failed'],
+    productsResponse,
+    resetToastStatus,
+    reset,
+  );
 
   useEffect(() => {
     if (productsStatus === 'created') {
@@ -333,10 +344,12 @@ const ProductForm = ({ product }) => {
               <EnhancedSimpleInput
                 name={`newProductAttributes.${idx}.attributeName`}
                 label="attribute"
+                className="w-full"
               />
               <EnhancedSimpleInput
                 name={`newProductAttributes.${idx}.attributeValue`}
                 label="value"
+                className="w-full"
               />
               <Button
                 variant="destructive"
@@ -344,7 +357,7 @@ const ProductForm = ({ product }) => {
                 onClick={() => {
                   newAttributeRemove(field.id);
                 }}
-                className="self-end"
+                className="self-end aspect-square"
               >
                 <Trash2 />
               </Button>

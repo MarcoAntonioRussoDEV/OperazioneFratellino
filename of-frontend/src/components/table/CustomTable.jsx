@@ -86,6 +86,7 @@ const CustomTable = ({
       STATUS_ENUM.FAILED,
     ],
     toastResponse,
+    resetToast,
   );
 
   const handleDeleted = () => {

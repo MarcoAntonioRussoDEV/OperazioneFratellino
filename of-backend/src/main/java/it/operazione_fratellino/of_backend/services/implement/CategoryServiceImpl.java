@@ -66,6 +66,8 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public ResponseEntity<String> save(Category category) {
         try {
+            category.setCode(category.getCode().toUpperCase());
+            category.setLastCode(0);
             categoryRepository.save(category);
             log.info("LOG: Creata categoria: " + category.getName());
             return new ResponseEntity<String>("Categoria salvata con successo", HttpStatus.CREATED);

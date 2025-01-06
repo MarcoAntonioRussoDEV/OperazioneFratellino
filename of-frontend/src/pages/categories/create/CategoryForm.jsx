@@ -1,30 +1,19 @@
 import React, { useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import iconToast from '@/utils/toastUtils';
-import { Spinner } from '@/components/ui/spinner.jsx';
 
-import {
-  Form,
-  FormItem,
-  FormControl,
-  FormLabel,
-  FormDescription,
-  FormField,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils';
-import { useTranslation } from 'react-i18next';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { CATEGORY } from '@/config/entity/entities';
 import SimpleInput from '@/components/form/SimpleInput';
 import withFormContext from '@/components/HOC/withFormContext';
-import { createCategory, editCategory } from '@/redux/categorySlice';
+import {
+  createCategory,
+  editCategory,
+  resetToastStatus,
+} from '@/redux/categorySlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppHooks, useToastHooks } from '@/hooks/useAppHooks';
 const EnhancedSimpleInput = withFormContext(SimpleInput);
@@ -33,12 +22,12 @@ const CategoryForm = ({ category }) => {
   const location = useLocation();
   const { from, formData } = location.state || {};
   const { t, tc, dispatch } = useAppHooks();
-  const { toast } = useToast();
   const {
     categories,
     status: categoriesStatus,
     error: categoriesError,
-    response: itemResponse,
+    response: categoryResponse,
+    toast: { status: toastStatus, response: toastResponse, error: toastError },
   } = useSelector((state) => state.categories);
 
   const methods = useForm({
@@ -57,7 +46,13 @@ const CategoryForm = ({ category }) => {
     formState: { isValid, errors },
   } = methods;
 
-  useToastHooks(categoriesStatus, ['created', 'failed'], itemResponse, reset);
+  useToastHooks(
+    toastStatus,
+    ['created', 'failed'],
+    toastResponse,
+    resetToastStatus,
+    reset,
+  );
 
   const onSubmit = (data) => {
     data = { ...data, code: data['code'].toUpperCase() };
@@ -70,6 +65,8 @@ const CategoryForm = ({ category }) => {
     if (from) {
       navigate(from, { state: { formData } });
     }
+
+    reset();
   };
 
   const handleValues = async (category) => {
@@ -87,12 +84,13 @@ const CategoryForm = ({ category }) => {
   return (
     <Form {...methods}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
-        {Object.entries(CATEGORY.fields)
-          .filter(([key, value]) => value.isFillable)
-          .map(([key, value]) => {
-            return <EnhancedSimpleInput key={key} name={key} label={key} />;
-          })}
-
+        <EnhancedSimpleInput
+          name={'code'}
+          label={'code'}
+          minLength="4"
+          maxLength="4"
+        />
+        <EnhancedSimpleInput name={'name'} label={'name'} />
         <Button
           isLoading={categoriesStatus === 'loading'}
           className="mt-10 col-span-3"

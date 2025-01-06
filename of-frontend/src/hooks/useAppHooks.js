@@ -154,6 +154,7 @@ export const useToastHooks = (
   statusReference,
   statusStringArray,
   message,
+  resetToastStatus,
   formReset,
   extraMessage = '',
 ) => {
@@ -173,6 +174,7 @@ export const useToastHooks = (
     });
     return () => {
       dismiss(currentToast);
+      dispatch(resetToastStatus());
       if (formReset) formReset();
     };
   }, [statusReference]);

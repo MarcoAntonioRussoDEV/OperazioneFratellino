@@ -48,7 +48,7 @@ const LoginForm = () => {
     <>
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-5 w-1/4 items-center mx-auto"
+        className="flex flex-col gap-5 lg:w-1/4 items-center mx-auto"
       >
         <div>
           <Label>Email</Label>
@@ -70,7 +70,9 @@ const LoginForm = () => {
         </div>
         <Button type="submit">Login</Button>
       </form>
-      {message && <p className='text-danger'>{`${tc('error')}: ${tc(message)}`}</p>}
+      {message && (
+        <p className="text-danger">{`${tc('error')}: ${tc(message)}`}</p>
+      )}
     </>
   );
 };
