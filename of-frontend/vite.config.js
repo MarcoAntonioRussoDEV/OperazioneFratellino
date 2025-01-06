@@ -7,7 +7,7 @@ import mkcert from 'vite-plugin-mkcert';
 export default defineConfig({
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './of-frontend/src'),
     },
   },
   plugins: [react(), mkcert()],
