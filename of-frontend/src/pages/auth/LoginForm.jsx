@@ -70,7 +70,7 @@ const LoginForm = () => {
         </div>
         <Button type="submit">Login</Button>
       </form>
-      {message && <p>{`${tc('error')}: ${tc(message)}`}</p>}
+      {message && <p className='text-danger'>{`${tc('error')}: ${tc(message)}`}</p>}
     </>
   );
 };
