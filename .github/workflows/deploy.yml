@@ -16,11 +16,22 @@ jobs:
             - name: Set up Node.js 
               uses: actions/setup-node@v2 
               with: 
-                node-version: '16'
+                node-version: '20'
+
+            - name: Cache node modules 
+              uses: actions/cache@v2 
+              with: 
+                path: ~/.npm 
+                key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }} 
+                restore-keys: |
+                  ${{ runner.os }}-node-
+
+            - name: Set environment variables 
+              run: echo "NODE_PATH=./of-frontend/node_modules" >> $GITHUB_ENV
 
             - name: Install dependencies
               run: cd ./of-frontend && npm install
-
+W
             - name: Build
               run: cd ./of-frontend && npm run build
 
