@@ -16,7 +16,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'  # Specifica una versione LTS di Node.js
+          node-version: '18'  # Utilizzare una versione LTS di Node.js
 
       - name: Cache node modules
         uses: actions/cache@v2
@@ -32,8 +32,20 @@ jobs:
       - name: Install dependencies
         run: cd of-frontend && npm install
 
-      - name: List files for debugging
-        run: cd of-frontend/src/utils && ls -l
+      - name: List files in of-frontend
+        run: |
+          cd of-frontend
+          ls -l
+
+      - name: List files in of-frontend/src
+        run: |
+          cd of-frontend/src
+          ls -l
+
+      - name: List files in of-frontend/src/utils
+        run: |
+          cd of-frontend/src/utils
+          ls -l
 
       - name: Check Vite version
         run: cd of-frontend && npx vite --version
