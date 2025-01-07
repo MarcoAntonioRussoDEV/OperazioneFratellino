@@ -7,8 +7,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { USER } from '@/config/entity/entities';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
-// import { axios } from '@/config/axios/axiosConfig';
-import axios from 'axios';
+import { axios } from '@/config/axios/axiosConfig';
 import { USER_DATA } from '@/config/links/urls';
 import { useDispatch, useSelector } from 'react-redux';
 import { getAuthUser } from '@/redux/userSlice';
@@ -42,14 +41,17 @@ const UserSettings = () => {
               Authorization: `Bearer ${token}`,
             },
           });
+          console.log('response: ', response);
 
           dispatch(getAuthUser());
+          console.log('Uploaded file');
         } catch (error) {
           console.log('Error uploading file: ', error);
         }
       };
       uploadFile();
     }
+    console.log('uploadAvatar: ', uploadAvatar);
   }, [uploadAvatar]);
 
   const handleClickInput = () => {

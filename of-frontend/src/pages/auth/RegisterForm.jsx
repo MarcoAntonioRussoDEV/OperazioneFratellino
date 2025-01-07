@@ -17,6 +17,7 @@ import { getAllCities, resetStatus } from '@/redux/citiesSlice';
 import { getAllRoles } from '@/redux/rolesSlice';
 import { useToast } from '@/hooks/use-toast';
 import iconToast from '@/utils/toastUtils';
+import { ADMIN_DATA } from '@/config/links/urls';
 const EnanchedSimpleInput = withFormContext(SimpleInput);
 const EnanchedSimpleCombobox = withFormContext(SimpleCombobox);
 
@@ -72,7 +73,7 @@ const RegisterForm = () => {
 
   const handleSubmit = async (data) => {
     try {
-      const response = await axios.post('/api/auth/register', data);
+      const response = await axios.post(ADMIN_DATA.registerUser, data);
       setResponse(response.data.message);
       setFetchStatus('created');
     } catch (error) {

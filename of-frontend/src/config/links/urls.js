@@ -69,6 +69,7 @@ const ADMIN_DATA = {
   deleteUser: 'admin/users/delete/',
   enableUser: 'admin/users/enable/',
   resetUserPassword: 'admin/users/reset-password/',
+  registerUser: "auth/register"
 };
 
 const CITY_DATA = {
