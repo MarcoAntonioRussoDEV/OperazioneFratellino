@@ -20,6 +20,9 @@ log() {
 # Inizio dello script
 log "Starting deployment script..."
 
+# Arresta i container Docker specificati dal file docker-compose.yml nella directory specificata
+ssh $REMOTE_USER@$REMOTE_HOST "cd $COMPOSE_DIR && docker-compose down"
+
 # Comando per buildare il progetto frontend
 log "Building the frontend project..."
 cd of-frontend
@@ -27,6 +30,8 @@ npm run build >> $LOG_FILE 2>&1 || { log "Frontend build failed"; exit 1; }
 cd -
 
 # Committa e push su GitHub
+log "Pulling changes from GitHub..."
+git push >> $LOG_FILE 2>&1 || { log "Git pull failed"; exit 1; }
 log "Committing and pushing changes to GitHub..."
 git add . >> $LOG_FILE 2>&1
 git commit -m "Updated build with script" >> $LOG_FILE 2>&1
@@ -46,7 +51,7 @@ fi
 # Comando per buildare il progetto backend
 log "Building the backend project..."
 cd ${BACKEND_LOCAL_DIR}
-./mvnw clean package >> $LOG_FILE 2>&1 || { log "Backend build failed"; exit 1; }
+./mvn clean package >> $LOG_FILE 2>&1 || { log "Backend build failed"; exit 1; }
 cd -
 
 # Comando SCP per copiare il file JAR del backend
@@ -62,9 +67,6 @@ else
 fi
 
 
-
-# Arresta i container Docker specificati dal file docker-compose.yml nella directory specificata
-ssh $REMOTE_USER@$REMOTE_HOST "cd $COMPOSE_DIR && docker-compose down"
 
 # Avvia i container Docker specificati dal file docker-compose.yml nella directory specificata
 ssh $REMOTE_USER@$REMOTE_HOST "cd $COMPOSE_DIR && docker-compose --build up -d"
