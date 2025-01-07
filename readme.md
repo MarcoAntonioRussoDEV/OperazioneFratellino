@@ -4,9 +4,15 @@
 
 # Gestionale WEB Operazione Fratellino
 
+### IT
 è un gestionale web basato sulle tecnologie React e Spring Boot creato per semplificare i processi di magazzino per la fondazione Magnificat Operazione Fratellino.
 Le funzionalità chiave sono la gestione di prodotti tramite un QRcode, generato automaticamente, e un sistema di codifica progressiva.
 Per semplificare la consegna del materiale, è stato implementata la scansione dei QRcode e la possibilità di effettuare preordini.
+
+### EN
+is a web management system based on React and Spring Boot technologies created to simplify warehouse processes for the Magnificat Operazione Fratellino foundation.
+The key features are the management of products via an automatically generated QR code and a progressive coding system.
+To simplify the delivery of the material, QR code scanning and the possibility of making pre-orders have been implemented.
 
 ## Authors
 
