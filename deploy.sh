@@ -31,7 +31,7 @@ cd -
 
 # Committa e push su GitHub
 log "Pulling changes from GitHub..."
-git push >> $LOG_FILE 2>&1 || { log "Git pull failed"; exit 1; }
+git pull origin main >> $LOG_FILE 2>&1 || { log "Git pull failed"; exit 1; }
 log "Committing and pushing changes to GitHub..."
 git add . >> $LOG_FILE 2>&1
 git commit -m "Updated build with script" >> $LOG_FILE 2>&1
@@ -51,13 +51,13 @@ fi
 # Comando per buildare il progetto backend
 log "Building the backend project..."
 cd ${BACKEND_LOCAL_DIR}
-./mvnm clean package >> $LOG_FILE 2>&1 || { log "Backend build failed"; exit 1; }
+./mvnw clean package >> $LOG_FILE 2>&1 || { log "Backend build failed"; exit 1; }
 cd -
 
 # Comando SCP per copiare il file JAR del backend
 BACKEND_JAR="${BACKEND_LOCAL_DIR}/target/$(ls ${BACKEND_LOCAL_DIR}/target | grep .jar)"
 log "Copying backend JAR to the remote server..."
-scp ${BACKEND_JAR} ${REMOTE_USER}@${REMOTE_HOST}:${BACKEND_REMOTE_DIR} >> $LOG_FILE 2>&1
+scp -v ${BACKEND_JAR} ${REMOTE_USER}@${REMOTE_HOST}:${BACKEND_REMOTE_DIR} >> $LOG_FILE 2>&1
 
 # Verifica se il comando SCP è riuscito
 if [ $? -eq 0 ]; then
