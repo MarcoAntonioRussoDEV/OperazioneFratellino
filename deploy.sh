@@ -51,7 +51,7 @@ fi
 # Comando per buildare il progetto backend
 log "Building the backend project..."
 cd ${BACKEND_LOCAL_DIR}
-./mvn clean package >> $LOG_FILE 2>&1 || { log "Backend build failed"; exit 1; }
+./mvnm clean package >> $LOG_FILE 2>&1 || { log "Backend build failed"; exit 1; }
 cd -
 
 # Comando SCP per copiare il file JAR del backend
