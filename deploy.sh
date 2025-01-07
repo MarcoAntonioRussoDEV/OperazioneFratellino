@@ -7,6 +7,7 @@ REMOTE_USER="ocrama94"
 REMOTE_HOST="95.246.72.155"
 FRONTEND_REMOTE_DIR="/home/ocrama94/Docker/operazione_fratellino/of-frontend"
 BACKEND_REMOTE_DIR="/home/ocrama94/Docker/operazione_fratellino/of-backend/target"
+COMPOSE_DIR="/home/ocrama94/Docker/operazione_fratellino"
 
 # File di log
 LOG_FILE="./deploy.log"
@@ -37,9 +38,9 @@ scp -r ${FRONTEND_LOCAL_DIR}* ${REMOTE_USER}@${REMOTE_HOST}:${FRONTEND_REMOTE_DI
 
 # Verifica se il comando SCP è riuscito
 if [ $? -eq 0 ]; then
-  log "Copia dei file del frontend completata con successo."
+  log "backend copy completed successfully."
 else
-  log "Errore durante la copia dei file del frontend."
+  log "Error during frontend copy."
 fi
 
 # Comando per buildare il progetto backend
@@ -59,6 +60,17 @@ if [ $? -eq 0 ]; then
 else
   log "Errore durante la copia del file JAR del backend."
 fi
+
+
+
+# Arresta i container Docker specificati dal file docker-compose.yml nella directory specificata
+ssh $REMOTE_USER@$REMOTE_HOST "cd $COMPOSE_DIR && docker-compose down"
+
+# Avvia i container Docker specificati dal file docker-compose.yml nella directory specificata
+ssh $REMOTE_USER@$REMOTE_HOST "cd $COMPOSE_DIR && docker-compose --build up -d"
+
+
+
 
 # Fine dello script
 log "Deployment script completed."
