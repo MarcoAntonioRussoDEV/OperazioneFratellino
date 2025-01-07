@@ -1,1 +1,7 @@
-/of-backend/resources/
+/of-backend/src/main/resources/*.properties
+/of-backend/src/main/resources/*.p12
+.vscode
+deploy.sh
+deploy.log
+docker-compose.yml
+**/Dockerfile
