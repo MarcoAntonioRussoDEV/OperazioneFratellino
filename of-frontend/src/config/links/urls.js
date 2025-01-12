@@ -69,7 +69,7 @@ const ADMIN_DATA = {
   deleteUser: 'admin/users/delete/',
   enableUser: 'admin/users/enable/',
   resetUserPassword: 'admin/users/reset-password/',
-  registerUser: "auth/register"
+  registerUser: 'auth/register',
 };
 
 const CITY_DATA = {
@@ -95,6 +95,10 @@ const CART_DATA = {
   toPreorder: 'carts/to-preorder',
 };
 
+const LOG_DATA = {
+  all: 'logs/all',
+};
+
 export {
   PRODUCTS_DATA,
   CATEGORIES_DATA,
@@ -110,6 +114,7 @@ export {
   STATUS_DATA,
   PREORDER_DATA,
   CART_DATA,
+  LOG_DATA,
 };
 
 export const fetchCategoriesCode = async () => {

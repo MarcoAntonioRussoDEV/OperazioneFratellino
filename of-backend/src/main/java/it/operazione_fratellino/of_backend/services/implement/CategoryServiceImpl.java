@@ -6,6 +6,7 @@ import it.operazione_fratellino.of_backend.entities.Category;
 import it.operazione_fratellino.of_backend.entities.Product;
 import it.operazione_fratellino.of_backend.repositories.CategoryRepository;
 import it.operazione_fratellino.of_backend.services.CategoryService;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.services.ProductService;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.SeverityEnum;
@@ -31,6 +32,8 @@ public class CategoryServiceImpl implements CategoryService {
     private ExceptionHandlerService exceptionHandlerService;
     @Autowired
     private ProductService productService;
+    @Autowired
+    private LogService logService;
 
     @Override
     public List<Category> findAll() {
@@ -43,7 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
         try {
             return categoryRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero delle categorie paginate: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero delle categorie paginate: " + e.getMessage(), SeverityEnum.ERROR, logService, "CategoryServiceImpl");
             throw new RuntimeException("Errore durante il recupero delle categorie paginato", e);
         }
     }

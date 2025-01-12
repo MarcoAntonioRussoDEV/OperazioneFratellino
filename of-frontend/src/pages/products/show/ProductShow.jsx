@@ -4,7 +4,11 @@ import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { addItemToUserCart, getUserCart } from '@/redux/cartSlice';
+import {
+  addItemToUserCart,
+  getUserCart,
+  resetToastStatus,
+} from '@/redux/cartSlice';
 import { STATUS_ENUM } from '@/utils/toastUtils';
 
 const ProductShow = () => {
@@ -22,7 +26,9 @@ const ProductShow = () => {
   } = useSelector((state) => state.products);
   const { user } = useSelector((state) => state.user);
 
-  const { status, response } = useSelector((state) => state.cart);
+  const {
+    toast: { status: toastStatus, response: toastResponse },
+  } = useSelector((state) => state.cart);
 
   useEffect(() => {
     dispatch(getProductByCode(code));
@@ -33,7 +39,12 @@ const ProductShow = () => {
     };
   }, []);
 
-  useToastHooks(status, [STATUS_ENUM.ADDED, STATUS_ENUM.FAILED], response);
+  useToastHooks(
+    toastStatus,
+    [STATUS_ENUM.ADDED, STATUS_ENUM.FAILED],
+    toastResponse,
+    resetToastStatus,
+  );
 
   useEffect;
   return (

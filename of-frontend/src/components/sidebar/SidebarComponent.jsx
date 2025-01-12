@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   Sidebar,
   SidebarContent,
@@ -6,17 +6,16 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarTrigger,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarMenu,
-  SidebarRail,
-  useSidebar,
 } from '@/components/ui/sidebar';
-import { capitalize, useTranslateAndCapitalize } from '@/utils/formatUtils';
+import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
-import { linksMenu, preordersMenu, salesMenu } from '@/config/links/linksMenu';
+import {
+  linksMenu,
+  logsMenu,
+  preordersMenu,
+  salesMenu,
+} from '@/config/links/linksMenu';
 import IconMenuItem from './IconMenuItem';
 import logo from '../../assets/Images/logo.png';
 import logoColor from '../../assets/Images/logo-no-bg.png';
@@ -25,7 +24,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import UserNavbar from './UserNavbar';
 import { hasAccess } from '@/utils/authService';
 import { USER_ROLES } from '@/utils/userRoles';
-import { countPreordersByStatus, resetStatus } from '@/redux/preorderSlice';
+import { countPreordersByStatus } from '@/redux/preorderSlice';
 import { getAuthUser } from '@/redux/userSlice';
 
 const SidebarComponent = () => {
@@ -110,6 +109,22 @@ const SidebarComponent = () => {
           <SidebarGroupLabel>{tc('preorders')}</SidebarGroupLabel>
           <SidebarMenu>
             {Object.entries(preordersMenu).map(([name, values]) => {
+              if (hasAccess(userRole, values.requiredRole))
+                return (
+                  <IconMenuItem
+                    key={name}
+                    name={name}
+                    {...values}
+                    userRole={userRole}
+                  />
+                );
+            })}
+          </SidebarMenu>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>{tc('log')}</SidebarGroupLabel>
+          <SidebarMenu>
+            {Object.entries(logsMenu).map(([name, values]) => {
               if (hasAccess(userRole, values.requiredRole))
                 return (
                   <IconMenuItem

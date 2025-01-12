@@ -2,6 +2,7 @@ package it.operazione_fratellino.of_backend.services.implement;
 
 import it.operazione_fratellino.of_backend.entities.Status;
 import it.operazione_fratellino.of_backend.repositories.StatusRepository;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.services.StatusService;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.SeverityEnum;
@@ -20,6 +21,8 @@ public class StatusServiceImpl implements StatusService {
 
     @Autowired
     StatusRepository statusRepository;
+    @Autowired
+    private LogService logService;
 
     @Override
     public Status findByValue(String value){
@@ -36,7 +39,7 @@ public class StatusServiceImpl implements StatusService {
         try {
             return statusRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero dello status paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero dello status paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "StatusServiceImpl");
             throw new RuntimeException("Errore durante il recupero dello status paginato", e);
         }
     }

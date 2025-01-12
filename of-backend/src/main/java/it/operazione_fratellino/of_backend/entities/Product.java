@@ -83,7 +83,11 @@ public class Product {
     }
 
     public void calcReservedPreorders() {
-        int totalReserved = this.productPreorders.stream().filter(productPreorder -> Objects.equals(productPreorder.getPreorder().getStatus().getValue(), "PENDING")).mapToInt(ProductPreorder::getQuantity).sum();
+        int totalReserved = this.productPreorders.stream().filter(productPreorder -> {
+            String status = productPreorder.getPreorder().getStatus().getValue();
+            return Objects.equals(status, "PENDING") || Objects.equals(status, "READY");
+        }).mapToInt(ProductPreorder::getQuantity).sum();
         this.setReservedPreorders(totalReserved);
     }
 }
+

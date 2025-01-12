@@ -2,6 +2,7 @@ package it.operazione_fratellino.of_backend.api;
 
 import it.operazione_fratellino.of_backend.DTOs.ProductDTO;
 import it.operazione_fratellino.of_backend.DTOs.PublicUserDTO;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.services.ProductService;
 import it.operazione_fratellino.of_backend.services.UserService;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.ProductConverter;
@@ -24,6 +25,8 @@ public class ApiPublicController {
     private ProductService productService;
     @Autowired
     private ProductConverter productConverter;
+    @Autowired
+    private LogService logService;
 
     @GetMapping("/products/all")
     public List<ProductDTO> getAllUsers() {
@@ -34,9 +37,9 @@ public class ApiPublicController {
     @GetMapping("/origin")
     public String someEndpoint(@RequestHeader(value = "Origin", required = false) String origin) {
         if (origin != null) {
-            LogUtils.log("Request origin: " + origin, SeverityEnum.INFO);
+            LogUtils.log("Request origin: " + origin, SeverityEnum.INFO, logService, "PublicController");
         } else {
-            LogUtils.log("No Origin header present in the request", SeverityEnum.INFO);
+            LogUtils.log("No Origin header present in the request", SeverityEnum.INFO, logService, "PublicController");
         }
         return origin;
     }

@@ -1,17 +1,3 @@
-/* 
-FILE DI CONFIGURAZIONE UTILIZZATO PER LA GENERAZIONE DELLE TABELLE DELLE ENTITA'.
-
-ENTITA'                                               [Nome entità]
-|
-|-fields                                              [Campi dell'entità]
-| |-FIELDNAME                                         [Nome del campo]
-|   |-type                                            [Tipo di dato del campo, serve per generare i dropdown nelle tabelle]
-|   |-isFillable                                      [Se può essere modificato o inserito dall'utente, serve per generare i form]
-|   |-relateDisplayField                              [Serve per indicare quale campo dell'entità associata recuperare per mostrarlo]
-|
-|-store                                               [Il nome dello store di redux associato]
-*/
-
 import { axios } from '../axios/axiosConfig';
 import { z } from 'zod';
 import {
@@ -149,11 +135,13 @@ export const PRODUCT = {
       sellingPrice: z.coerce.number().positive(),
       category: z.string().refine(
         async (code) => {
-          try {
-            const response = await axios.get(CATEGORIES_DATA.byCode + code);
-            return true;
-          } catch (error) {
-            return false;
+          if (code) {
+            try {
+              const response = await axios.get(CATEGORIES_DATA.byCode + code);
+              return true;
+            } catch (error) {
+              return false;
+            }
           }
         },
         { message: 'categoryNotFound' },

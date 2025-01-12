@@ -141,5 +141,6 @@
   "COMPLETED": "COMPLETATO",
   "READY": "PRONTO",
   "itemsPerPage": "elementi per pagina",
-  "users.disabled": "utenti disabilitati"
+  "users.disabled": "utenti disabilitati",
+  "showPassword": "mostra password"
 }

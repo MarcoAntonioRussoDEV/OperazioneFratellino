@@ -6,6 +6,7 @@ import it.operazione_fratellino.of_backend.entities.Product;
 import it.operazione_fratellino.of_backend.entities.ProductAttributes;
 import it.operazione_fratellino.of_backend.repositories.AttributeRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductAttributesRepository;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.services.ProductAttributesService;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.SeverityEnum;
@@ -29,6 +30,8 @@ public class ProductAttributesServiceImpl implements ProductAttributesService {
     AttributeRepository attributeRepository;
     @Autowired
     ExceptionHandlerService exceptionHandlerService;
+    @Autowired
+    private LogService logService;
 
     @Override
     public List<ProductAttributes> findAll() {
@@ -40,7 +43,7 @@ public class ProductAttributesServiceImpl implements ProductAttributesService {
         try {
              return productAttributesRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero del product_attributes paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero del product_attributes paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "ProductAttributesServiceImpl");
             throw new RuntimeException("Errore durante il recupero del product_attributes paginato", e);
         }
     }
@@ -57,7 +60,7 @@ public class ProductAttributesServiceImpl implements ProductAttributesService {
     }
 
     @Override
-    public ProductAttributes findByProduct(Product product) {
+    public List<ProductAttributes> findByProduct(Product product) {
         return productAttributesRepository.findByProduct(product);
     }
 

@@ -18,10 +18,27 @@ public class PaginationUtils {
         }
 
         Page<T> entities = entityService.apply(PageRequest.of(page, size));
+
         List<D> content = entities.stream().map(entityConverter).toList();
 
 
         return new PaginateResponse<>(content, entities.getNumber(), entities.getSize(), entities.getTotalElements(), entities.getTotalPages());
 
+    }
+
+    public static <T> PaginateResponse<T> getAllEntities(int page, int size, Function<PageRequest, Page<T>> entityService) {
+        if (page < 0) {
+            page = 0;
+        }
+
+        if (size < 0) {
+            size = Integer.MAX_VALUE;
+        }
+
+        Page<T> entities = entityService.apply(PageRequest.of(page, size));
+
+        List<T> content = entities.getContent();
+
+        return new PaginateResponse<>(content, entities.getNumber(), entities.getSize(), entities.getTotalElements(), entities.getTotalPages());
     }
 }

@@ -57,6 +57,17 @@ const handleTotalPrice = (state) => {
 const initialState = {
   sellCart: [],
   totalPrice: 0,
+  pagination: {
+    currentPage: 0,
+    itemsPerPage: 10,
+    totalItems: 0,
+    totalPages: 0,
+  },
+  toast: {
+    status: null,
+    error: null,
+    response: null,
+  },
 };
 
 export const sellCartSlice = createSlice({
@@ -83,6 +94,11 @@ export const sellCartSlice = createSlice({
       });
       handleTotalPrice(state);
     },
+    resetToastStatus(state) {
+      state.toast.status = null;
+      state.toast.error = null;
+      state.toast.response = null;
+    },
     decreaseQuantity(state, { payload }) {
       const newCart = [];
       state.sellCart.forEach((product) => {
@@ -108,6 +124,11 @@ export const sellCartSlice = createSlice({
   },
 });
 
-export const { resetCart, deleteItem, increaseQuantity, decreaseQuantity } =
-  sellCartSlice.actions;
+export const {
+  resetCart,
+  deleteItem,
+  increaseQuantity,
+  decreaseQuantity,
+  resetToastStatus,
+} = sellCartSlice.actions;
 export default sellCartSlice.reducer;

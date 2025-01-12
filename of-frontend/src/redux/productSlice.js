@@ -215,7 +215,8 @@ export const productSlice = createSlice({
       })
       .addCase(createProduct.fulfilled, (state, action) => {
         state.status = 'created';
-        state.response = action.payload;
+        state.toast.status = 'created';
+        state.toast.response = action.payload;
       })
       .addCase(createProduct.rejected, (state, action) => {
         state.toast.status = 'failed';

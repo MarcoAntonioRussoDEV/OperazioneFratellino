@@ -2,6 +2,7 @@ package it.operazione_fratellino.of_backend.api;
 
 import it.operazione_fratellino.of_backend.DTOs.UserDTO;
 import it.operazione_fratellino.of_backend.entities.User;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.services.UserService;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.UserConverter;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
@@ -31,6 +32,8 @@ public class ApiAdminController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private Environment env;
+    @Autowired
+    private LogService logService;
 
     @GetMapping("/users/all")
     public PaginateResponse<UserDTO> getAllUsers(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
@@ -43,7 +46,7 @@ public class ApiAdminController {
         user = userService.findByEmail(userEmail);
         user.setIsDeleted(true);
         userService.patch(user);
-        LogUtils.log("ADMIN.CONTROLLER: deleted user: " + user.getEmail(), SeverityEnum.WARNING);
+        LogUtils.log("ADMIN.CONTROLLER: deleted user: " + user.getEmail(), SeverityEnum.WARNING, logService, "AdminController");
         return new ResponseEntity<>("userDeleted",HttpStatus.OK);
     }
 
@@ -53,7 +56,7 @@ public class ApiAdminController {
         user = userService.findByEmail(userEmail);
         user.setIsDeleted(false);
         userService.patch(user);
-        LogUtils.log("ADMIN.CONTROLLER: enabled user: " + user.getEmail(), SeverityEnum.WARNING);
+        LogUtils.log("ADMIN.CONTROLLER: enabled user: " + user.getEmail(), SeverityEnum.WARNING, logService, "AdminController");
         return new ResponseEntity<>("userEnabled",HttpStatus.OK);
     }
 
@@ -64,7 +67,7 @@ public class ApiAdminController {
         user.setPassword(passwordEncoder.encode(env.getProperty("default.password")));
         user.setIsFirstAccess(true);
         userService.patch(user);
-        LogUtils.log("ADMIN.CONTROLLER: reset password for user: " + user.getEmail(), SeverityEnum.WARNING);
+        LogUtils.log("ADMIN.CONTROLLER: reset password for user: " + user.getEmail(), SeverityEnum.WARNING, logService, "AdminController");
         return new ResponseEntity<>("userPasswordReset",HttpStatus.OK);
     }
 

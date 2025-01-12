@@ -9,6 +9,7 @@ import {
   GalleryVerticalEnd,
   ShoppingBasket,
   Gift,
+  Code,
 } from 'lucide-react';
 import { IoIosContact, IoIosSettings } from 'react-icons/io';
 
@@ -127,6 +128,14 @@ export const preordersMenu = {
   },
 };
 
+export const logsMenu = {
+  logs: {
+    path: '/logs',
+    icon: 'Code',
+    requiredRole: USER_ROLES.DEVELOPER,
+  },
+};
+
 export const icons = {
   House,
   ChartColumnStacked,
@@ -140,4 +149,5 @@ export const icons = {
   IoIosSettings,
   ShoppingBasket,
   Gift,
+  Code,
 };

@@ -44,6 +44,8 @@ public class UserServiceImpl implements UserService {
     @Lazy
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private LogService logService;
 
     /**
      * Create the first user into database with params defined into properties
@@ -100,7 +102,7 @@ public class UserServiceImpl implements UserService {
                 cart.setCreatedAt(new Date());
                 cart.setTotalPrice(0D);
                 cart = cartRepository.save(cart);
-            LogUtils.log(String.format("USER.SERVICE: created cart for user: %s", cart.getUser().getEmail()), SeverityEnum.INFO);
+            LogUtils.log(String.format("USER.SERVICE: created cart for user: %s", cart.getUser().getEmail()), SeverityEnum.INFO, logService, "UserServiceImpl");
 
 
             Client client = new Client();
@@ -112,14 +114,14 @@ public class UserServiceImpl implements UserService {
 
                 user.setCart(cart);
                 user.setClient(client);
-            LogUtils.log(String.format("USER.SERVICE: created client for user: %s", client.getUser().getEmail()), SeverityEnum.INFO);
+            LogUtils.log(String.format("USER.SERVICE: created client for user: %s", client.getUser().getEmail()), SeverityEnum.INFO, logService, "UserServiceImpl");
 
             user.setIsFirstAccess(true);
             user = userRepository.save(user);
-            LogUtils.log(String.format("USER.SERVICE: created user %s", user.getEmail()), SeverityEnum.INFO);
+            LogUtils.log(String.format("USER.SERVICE: created user %s", user.getEmail()), SeverityEnum.INFO, logService, "UserServiceImpl");
             return user;
         } catch (Exception e) {
-            LogUtils.log(String.format("USER.SERVICE: error saving user %s", user.getEmail()), SeverityEnum.ERROR);
+            LogUtils.log(String.format("USER.SERVICE: error saving user %s", user.getEmail()), SeverityEnum.ERROR, logService, "UserServiceImpl");
             throw new RuntimeException(e);
         }
     }
@@ -134,7 +136,7 @@ public class UserServiceImpl implements UserService {
         try {
             return userRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero dell' utente paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero dell' utente paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "UserServiceImpl");
             throw new RuntimeException("Errore durante il recupero dell' utente paginato", e);
         }
     }
@@ -171,7 +173,7 @@ public class UserServiceImpl implements UserService {
 
         if(!Objects.isNull(requestUserDTO.getRole()) && AuthorityUtils.hasAccess(loggedUser.getRole(), AutorityEnum.ADMIN)){
             user.setRole(roleService.findByName(requestUserDTO.getRole()));
-            LogUtils.log(String.format("Changed %s's role to %s ",requestUserDTO.getEmail(), requestUserDTO.getRole()), SeverityEnum.WARNING);
+            LogUtils.log(String.format("Changed %s's role to %s ",requestUserDTO.getEmail(), requestUserDTO.getRole()), SeverityEnum.WARNING, logService, "UserServiceImpl");
         }
 
         clientService.save(client);

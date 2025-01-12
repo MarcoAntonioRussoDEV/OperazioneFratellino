@@ -15,6 +15,7 @@ import roleReducer from './rolesSlice';
 import preorderCartReducer from './preorderCartSlice';
 import statusReducer from './statusSlice';
 import preorderReducer from './preorderSlice';
+import logReducer from './logsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -34,5 +35,6 @@ export const store = configureStore({
     preorderCart: preorderCartReducer,
     preorderStatus: statusReducer,
     preorders: preorderReducer,
+    logs: logReducer,
   },
 });

@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface ProductAttributesRepository extends JpaRepository<ProductAttributes, Integer> {
 
     List<ProductAttributes> findAll();
-    ProductAttributes findByProduct(Product product);
+    List<ProductAttributes> findByProduct(Product product);
     ProductAttributes findByAttribute(Attribute attribute);
 
     @Query("SELECT pa FROM ProductAttributes pa WHERE pa.product = :product AND pa.attribute = :attribute AND pa.value = :value")

@@ -25,6 +25,8 @@ public class AttributeServiceImpl implements AttributeService {
     AttributeRepository attributeRepository;
     @Autowired
     private ExceptionHandlerService exceptionHandlerService;
+    @Autowired
+    private LogServiceImpl logService;
 
 
     @Override
@@ -32,7 +34,7 @@ public class AttributeServiceImpl implements AttributeService {
         try {
             return attributeRepository.findAll();
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero dell'attributo paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero dell'attributo paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "AttributeServiceImpl");
             throw new RuntimeException("Errore durante il recupero dell'attributo paginato", e);
         }
     }

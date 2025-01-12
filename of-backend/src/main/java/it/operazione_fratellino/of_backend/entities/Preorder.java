@@ -1,7 +1,9 @@
 package it.operazione_fratellino.of_backend.entities;
 
+import it.operazione_fratellino.of_backend.services.ProductService;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.util.Date;

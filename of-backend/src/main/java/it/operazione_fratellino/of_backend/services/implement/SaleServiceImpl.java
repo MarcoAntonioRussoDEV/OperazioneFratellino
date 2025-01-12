@@ -7,10 +7,7 @@ import it.operazione_fratellino.of_backend.entities.*;
 import it.operazione_fratellino.of_backend.repositories.ProductRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductSaleRepository;
 import it.operazione_fratellino.of_backend.repositories.SaleRepository;
-import it.operazione_fratellino.of_backend.services.ClientService;
-import it.operazione_fratellino.of_backend.services.ProductService;
-import it.operazione_fratellino.of_backend.services.SaleService;
-import it.operazione_fratellino.of_backend.services.UserService;
+import it.operazione_fratellino.of_backend.services.*;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.SeverityEnum;
 import lombok.extern.java.Log;
@@ -45,6 +42,8 @@ public class SaleServiceImpl implements SaleService {
     ProductRepository productRepository;
     @Autowired
     ClientService clientService;
+    @Autowired
+    private LogService logService;
 
     @Override
     public List<Sale> findAll() {
@@ -56,7 +55,7 @@ public class SaleServiceImpl implements SaleService {
         try {
             return saleRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero della vendita paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero della vendita paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "SaleServiceImpl");
             throw new RuntimeException("Errore durante il recupero della vendita paginato", e);
         }
     }
@@ -97,7 +96,7 @@ public class SaleServiceImpl implements SaleService {
             productList.add(product);
 
             if (product.getStock() - cartItem.getQuantity() < 0) {
-                LogUtils.log("SALE.SERVICE: Stock not available", SeverityEnum.ERROR);
+                LogUtils.log("SALE.SERVICE: Stock not available", SeverityEnum.ERROR, logService, "SaleServiceImpl");
                 return new ResponseEntity<>("Impossibile creare la vendita per mancanza di disponibilità", HttpStatus.CONFLICT);
             }
             product.setStock(product.getStock() - cartItem.getQuantity());

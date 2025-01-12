@@ -31,6 +31,7 @@ import EditUser from './pages/user/EditUser';
 import EditProduct from './pages/products/edit/EditProduct';
 import EditCategory from './pages/categories/edit/EditCategory';
 import ProductShow from './pages/products/show/ProductShow';
+import Logs from './pages/logs/Logs';
 
 function App() {
   const {
@@ -206,10 +207,10 @@ function App() {
               />
               {/* DEVELOPER ROUTES */}
               <Route
-                path="/product-attributes/"
+                path="/logs"
                 element={
                   <ProtectedRoute requiredRole={USER_ROLES.DEVELOPER}>
-                    <ProductAttributesTable />
+                    <Logs />
                   </ProtectedRoute>
                 }
               />

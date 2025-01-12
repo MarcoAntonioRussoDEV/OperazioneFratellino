@@ -139,5 +139,6 @@
   "COMPLETED": "COMPLETED",
   "READY": "READY",
   "itemsPerPage": "items per page",
-  "users.disabled": "disabled users"
+  "users.disabled": "disabled users",
+  "showPassword": "show password"
 }

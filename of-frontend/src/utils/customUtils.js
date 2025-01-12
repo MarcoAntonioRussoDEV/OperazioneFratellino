@@ -5,3 +5,7 @@ export const fieldSettingsResolver = (entity, field, targetValue) => {
     }
   }
 };
+
+export const extractCategoryByProduct = (productCode) => {
+  return productCode.substring(0, 4);
+};

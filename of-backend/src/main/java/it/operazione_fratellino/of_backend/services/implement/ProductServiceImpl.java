@@ -10,6 +10,7 @@ import it.operazione_fratellino.of_backend.repositories.AttributeRepository;
 import it.operazione_fratellino.of_backend.repositories.CategoryRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductAttributesRepository;
 import it.operazione_fratellino.of_backend.repositories.ProductRepository;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.services.ProductService;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.SeverityEnum;
@@ -47,6 +48,8 @@ public class ProductServiceImpl implements ProductService {
     ExceptionHandlerService exceptionHandlerService;
     @Autowired
     FileStoreService fileStoreService;
+    @Autowired
+    private LogService logService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -61,7 +64,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             return productRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero del prodotto paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero del prodotto paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "ProductServiceImpl");
             throw new RuntimeException("Errore durante il recupero del prodotto paginato", e);
         }
     }
@@ -118,6 +121,20 @@ public class ProductServiceImpl implements ProductService {
         return productRepository.save(product);
     }
 
+
+
+    @Transactional
+    public void clearProductAttributes(Product product) {
+        try {
+            List<ProductAttributes> attributes = productAttributesRepository.findByProduct(product);
+            productAttributesRepository.deleteAll(attributes);
+            LogUtils.log(String.format("Cleared attributes for product: %s", product.getCode()), SeverityEnum.INFO, logService, "ProductServiceImpl");
+        } catch (Exception e) {
+            LogUtils.log(String.format("Error clearing attributes for product: %s", product.getCode()), SeverityEnum.ERROR, logService, "ProductServiceImpl");
+        }
+    }
+
+
     @Override
     @Transactional
     public ResponseEntity<String> patch(RequestProductDTO productDTO, MultipartFile image) {
@@ -134,6 +151,8 @@ public class ProductServiceImpl implements ProductService {
             if (image != null && !image.isEmpty()) {
                 product.setImage(image.getBytes());
             }
+
+            this.clearProductAttributes(product);
 
             if (productDTO.getExistingProductAttributes() != null) {
                 for (RequestProductAttributesDTO existingAttr : productDTO.getExistingProductAttributes()) {
@@ -157,7 +176,7 @@ public class ProductServiceImpl implements ProductService {
                         return new ResponseEntity<>(String.format("La specifica %s esiste già, selezionarla nel menù apposito", newAttr.getAttributeName()),HttpStatus.BAD_REQUEST);
                     }
 
-                    if (productAttributesRepository.findByAttributeValue(product,attributeRepository.findByName(newAttr.getAttributeName()).get(), newAttr.getAttributeValue()).isEmpty()) {
+                    if (productAttributesRepository.findByAttributeValue(product,attributeRepository.findByName(newAttr.getAttributeName()).orElseGet(()->null), newAttr.getAttributeValue()).isEmpty()) {
 
                         Attribute attribute = new Attribute();
                         attribute.setName(newAttr.getAttributeName());
@@ -173,12 +192,11 @@ public class ProductServiceImpl implements ProductService {
             }
 
 
-            LogUtils.log(String.format("Edited product: %s", product.getCode()), SeverityEnum.INFO);
+            LogUtils.log(String.format("Edited product: %s", product.getCode()), SeverityEnum.INFO, logService, "ProductServiceImpl");
             productRepository.save(product);
             return new ResponseEntity<String>("Prodotto modificato con successo", HttpStatus.OK);
         } catch (RuntimeException | IOException e) {
-            LogUtils.log(String.format("PRODUCT.SERVICE:Error editing product: %s", productDTO.getCode()),
-                    SeverityEnum.ERROR);
+            LogUtils.log(String.format("PRODUCT.SERVICE:Error editing product: %s", productDTO.getCode()),SeverityEnum.ERROR, logService, "ProductServiceImpl");
             return exceptionHandlerService.handleException(e, productDTO.getName());
         }
 
@@ -274,7 +292,7 @@ public class ProductServiceImpl implements ProductService {
     public ResponseEntity<String> delete(Product product) {
         try {
             productRepository.delete(product);
-            LogUtils.log(String.format("PRODUCT.SERVICE: deleted product: %s", product.getCode()),SeverityEnum.WARNING);
+            LogUtils.log(String.format("PRODUCT.SERVICE: deleted product: %s", product.getCode()),SeverityEnum.WARNING, logService, "ProductServiceImpl");
             return new ResponseEntity<>("prodotto eliminato con successo", HttpStatus.OK);
         } catch (DataIntegrityViolationException e) {
             return new ResponseEntity<>("Errore: il prodotto è associata ad altri dati", HttpStatus.CONFLICT);
@@ -291,11 +309,11 @@ public class ProductServiceImpl implements ProductService {
 
             if (product.getIsDeleted()) {
                 LogUtils.log(String.format("PRODUCT.SERVICE: disabled product: %s", product.getCode()),
-                        SeverityEnum.WARNING);
+                        SeverityEnum.WARNING, logService, "ProductServiceImpl");
                 return new ResponseEntity<>("prodotto disabilitato", HttpStatus.OK);
             } else {
                 LogUtils.log(String.format("PRODUCT.SERVICE: enabled product: %s", product.getCode()),
-                        SeverityEnum.WARNING);
+                        SeverityEnum.WARNING, logService, "ProductServiceImpl");
                 return new ResponseEntity<>("prodotto abilitato", HttpStatus.OK);
             }
         } catch (Exception e) {

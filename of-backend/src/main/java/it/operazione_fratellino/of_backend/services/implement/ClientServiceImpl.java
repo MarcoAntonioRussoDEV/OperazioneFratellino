@@ -5,6 +5,7 @@ import it.operazione_fratellino.of_backend.entities.Client;
 import it.operazione_fratellino.of_backend.entities.User;
 import it.operazione_fratellino.of_backend.repositories.ClientRepository;
 import it.operazione_fratellino.of_backend.services.ClientService;
+import it.operazione_fratellino.of_backend.services.LogService;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.SeverityEnum;
 import lombok.extern.java.Log;
@@ -27,12 +28,15 @@ public class ClientServiceImpl implements ClientService {
     @Autowired
     ExceptionHandlerService exceptionHandlerService;
 
+    @Autowired
+    private LogService logService;
+
     @Override
     public Page<Client> findAll(PageRequest pageRequest) {
         try {
             return clientRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero dei clienti paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero dei clienti paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "ClientServiceImpl");
             throw new RuntimeException("Errore durante il recupero dei clienti paginato", e);
         }
     }

@@ -205,6 +205,17 @@ const initialState = {
   status: 'idle',
   response: '',
   error: '', */,
+  pagination: {
+    currentPage: 0,
+    itemsPerPage: 10,
+    totalItems: 0,
+    totalPages: 0,
+  },
+  toast: {
+    status: null,
+    error: null,
+    response: null,
+  },
 };
 
 export const cartSlice = createSlice({
@@ -217,6 +228,11 @@ export const cartSlice = createSlice({
     },
     resetStatus(state) {
       (state.status = 'idle'), (state.response = ''), (state.error = '');
+    },
+    resetToastStatus(state) {
+      state.toast.status = null;
+      state.toast.error = null;
+      state.toast.response = null;
     },
     deleteItem(state, { payload }) {
       handleDeleteItem(state, payload);
@@ -326,5 +342,6 @@ export const {
   increaseQuantity,
   decreaseQuantity,
   resetStatus,
+  resetToastStatus,
 } = cartSlice.actions;
 export default cartSlice.reducer;

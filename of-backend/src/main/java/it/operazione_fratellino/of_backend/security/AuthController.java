@@ -6,10 +6,7 @@ import it.operazione_fratellino.of_backend.DTOs.UserDTO;
 import it.operazione_fratellino.of_backend.entities.City;
 import it.operazione_fratellino.of_backend.entities.Client;
 import it.operazione_fratellino.of_backend.entities.User;
-import it.operazione_fratellino.of_backend.services.CityService;
-import it.operazione_fratellino.of_backend.services.ClientService;
-import it.operazione_fratellino.of_backend.services.RoleService;
-import it.operazione_fratellino.of_backend.services.UserService;
+import it.operazione_fratellino.of_backend.services.*;
 import it.operazione_fratellino.of_backend.utils.DTOConverters.UserConverter;
 import it.operazione_fratellino.of_backend.utils.LogUtils;
 import it.operazione_fratellino.of_backend.utils.ResponseUtils;
@@ -56,7 +53,8 @@ public class AuthController {
     private CityService cityService;
     @Autowired
     private RoleService roleService;
-
+    @Autowired
+    private LogService logService;
 
     @Transactional
     @PostMapping("/register")
@@ -104,7 +102,7 @@ public class AuthController {
             final String jwt = jwtUtil.generateToken(user.getEmail());
             session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, SecurityContextHolder.getContext());
             session.setAttribute("user", user.getEmail());
-            LogUtils.log("User authenticated: " + authentication.getName(), SeverityEnum.INFO);
+            LogUtils.log("User authenticated: " + authentication.getName(), SeverityEnum.INFO, logService, "AuthController");
 
             Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
 
@@ -135,7 +133,9 @@ public class AuthController {
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         String email = (String) session.getAttribute("user");
-        LogUtils.log("User disconnected: " + email,SeverityEnum.INFO );
+        if (email != null) {
+            LogUtils.log("User disconnected: " + email,SeverityEnum.INFO , logService, "AuthController");
+        }
         session.invalidate();
         return "Logout successful";
     }

@@ -57,11 +57,7 @@ const OTMDropdown = ({
             return (
               <DropdownMenuItem
                 key={key}
-                onClick={() =>
-                  handleShowRelate(
-                    value[relateDisplayValue] ?? value[relateDisplayField],
-                  )
-                }
+                onClick={() => handleShowRelate(value[relateDisplayField])}
               >
                 {tc(value[relateDisplayField])}
                 <DropdownMenuShortcut>

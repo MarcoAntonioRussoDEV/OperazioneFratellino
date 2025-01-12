@@ -52,9 +52,7 @@ export const useFilterHooks = (
   };
 
   useEffect(() => {
-    if (currentPage && itemsPerPage) {
-      dispatch(getItems({ page: currentPage, size: itemsPerPage }));
-    }
+    dispatch(getItems({ page: currentPage, size: itemsPerPage }));
   }, [currentPage, itemsPerPage]);
 
   useEffect(() => {
@@ -174,7 +172,7 @@ export const useToastHooks = (
     });
     return () => {
       dismiss(currentToast);
-      dispatch(resetToastStatus());
+      // dispatch(resetToastStatus());
       if (formReset) formReset();
     };
   }, [statusReference]);

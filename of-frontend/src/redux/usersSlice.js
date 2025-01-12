@@ -217,7 +217,6 @@ export const usersSlice = createSlice({
       .addCase(resetUserPassword.fulfilled, (state, { payload }) => {
         state.toast.status = 'reset';
         state.toast.response = payload;
-        state.status = 'idle';
       })
       .addCase(resetUserPassword.rejected, (state, { payload }) => {
         state.toast.status = 'failed';

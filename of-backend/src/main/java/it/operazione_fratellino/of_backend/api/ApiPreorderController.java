@@ -51,8 +51,7 @@ public class ApiPreorderController {
 
     @PatchMapping("/update-status/{preorderID}/{status}")
     public ResponseEntity<String> updatePreorderStatus(@PathVariable Integer preorderID, @PathVariable String status){
-        Preorder preorder = preorderService.findById(preorderID);
-        return preorderService.updateStatus(preorder, status);
+        return preorderService.updateStatus(preorderID, status);
     }
 
     @PostMapping("/create")

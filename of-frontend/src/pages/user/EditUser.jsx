@@ -24,6 +24,7 @@ import { hasAccess } from '@/utils/authService';
 import { USER_ROLES } from '@/utils/userRoles';
 import { getAuthUser } from '@/redux/userSlice';
 import { getAllUsers } from '@/redux/usersSlice';
+import { Switch } from '@/components/ui/switch';
 const EnanchedSimpleInput = withFormContext(SimpleInput);
 const EnanchedSimpleCombobox = withFormContext(SimpleCombobox);
 
@@ -246,13 +247,13 @@ const EditUser = () => {
               className="w-full"
               name="oldPassword"
               label="oldPassword"
-              type="password"
+              type={'password'}
             />
             <EnanchedSimpleInput
               className="w-full"
               name="newPassword"
               label="newPassword"
-              type="password"
+              type={'password'}
             />
           </>
         )}

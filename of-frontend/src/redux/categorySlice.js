@@ -89,7 +89,7 @@ const initialState = {
   },
 };
 
-export const cateogrySlice = createSlice({
+export const category = createSlice({
   name: 'categories',
   initialState,
   reducers: {
@@ -216,5 +216,5 @@ export const {
   orderCategories,
   setPage,
   setItemsPerPage,
-} = cateogrySlice.actions;
-export default cateogrySlice.reducer;
+} = category.actions;
+export default category.reducer;

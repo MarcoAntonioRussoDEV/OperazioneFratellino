@@ -43,6 +43,8 @@ public class PreorderServiceImpl implements PreorderService {
     ExceptionHandlerService exceptionHandlerService;
     @Autowired
     SaleService saleService;
+    @Autowired
+    private LogService logService;
 
     @Override
     public List<Preorder> findAll() {
@@ -54,7 +56,7 @@ public class PreorderServiceImpl implements PreorderService {
         try {
             return preorderRepository.findAll(pageRequest);
         } catch (Exception e) {
-            LogUtils.log("Errore durante il recupero del preorder_service paginato: " + e.getMessage(), SeverityEnum.ERROR);
+            LogUtils.log("Errore durante il recupero del preorder_service paginato: " + e.getMessage(), SeverityEnum.ERROR, logService, "PreorderServiceImpl");
             throw new RuntimeException("Errore durante il recupero del preorder_service paginato", e);
         }
     }
@@ -93,19 +95,20 @@ public class PreorderServiceImpl implements PreorderService {
     }
 
     @Override
-    public ResponseEntity<String> updateStatus(Preorder preorder, String status){
+    public ResponseEntity<String> updateStatus(Integer preorderID, String status){
+        Preorder preorder = preorderRepository.findById(preorderID).orElseThrow();
         try{
             String previousStatus = preorder.getStatus().getValue().toLowerCase();
             preorder.setStatus(statusService.findByValue(status));
             preorderRepository.save(preorder);
-            this.updateProductReservedPreorders(preorder);
-            if(previousStatus.equals("completed") && (status.equals("rejected") || status.equals("pending"))){
+            if(previousStatus.equals("completed") && !status.equals("completed")){
                 this.updateProductStock(preorder);
             }
-            LogUtils.log(String.format("Preordine %s aggiornato con stato %s", preorder.getId(), status), SeverityEnum.INFO);
+            this.updateProductReservedPreorders(preorder);
+            LogUtils.log(String.format("Preordine %s aggiornato con stato %s", preorder.getId(), status), SeverityEnum.INFO, logService, "PreorderServiceImpl");
             return new ResponseEntity<>("Stato aggiornato", HttpStatus.OK);
         } catch (Exception e) {
-            LogUtils.log(String.format("Errore nell'aggiornamento dello stato del preordine %s", preorder.getId()), SeverityEnum.ERROR);
+            LogUtils.log(String.format("Errore nell'aggiornamento dello stato del preordine %s", preorder.getId()), SeverityEnum.ERROR, logService, "PreorderServiceImpl");
             return new ResponseEntity<>("Errore nell'aggiornamento dello stato", HttpStatus.BAD_REQUEST);
         }
     }
@@ -116,6 +119,7 @@ public class PreorderServiceImpl implements PreorderService {
         preorder.setUser(userService.findByEmail(requestPreorderDTO.getUserEmail()));
         preorder.setClient(checkClientExistOrGetNew(requestPreorderDTO.getClientEmail(), requestPreorderDTO.getClientName()));
         preorder.setStatus(statusService.findByValue(requestPreorderDTO.getStatus()));
+
         Double totalPrice = 0D;
         for(PreorderCartDTO cartDTO : requestPreorderDTO.getPreorderCart()){
             totalPrice += cartDTO.getQuantity() * productService.findById(cartDTO.getProduct()).getSellingPrice();
@@ -123,21 +127,26 @@ public class PreorderServiceImpl implements PreorderService {
         preorder.setTotalPrice(totalPrice);
         preorder.setCreatedAt(new Date());
 
-        Preorder savedPreorder = preorderRepository.save(preorder);
+        preorder = preorderRepository.save(preorder);
+
+
         List<ProductPreorder> productPreorderList = new ArrayList<>();
         for(PreorderCartDTO cartDTO : requestPreorderDTO.getPreorderCart()){
             ProductPreorder productPreorder = new ProductPreorder();
-            productPreorder.setPreorder(savedPreorder);
-            productPreorder.setProduct(productService.findById(cartDTO.getProduct()));
+            productPreorder.setPreorder(preorder);
+            Product product = productService.findById(cartDTO.getProduct());
+            productPreorder.setProduct(product);
             productPreorder.setQuantity(cartDTO.getQuantity());
             productPreorderList.add(productPreorder);
         }
         List<ProductPreorder> savedList = productPreorderRepository.saveAll(productPreorderList);
-        savedPreorder.setProductPreorders(savedList);
+        preorder.setProductPreorders(savedList);
+        this.updateProductReservedPreorders(preorder);
+
 
         try {
-            Preorder savedP = preorderRepository.save(savedPreorder);
-            log.info("LOG: Creato preordine ID: " + savedP.getId());
+            preorder = preorderRepository.save(preorder);
+            log.info("LOG: Creato preordine ID: " + preorder.getId());
             return new ResponseEntity<String>("preordine salvato con successo", HttpStatus.CREATED);
         } catch (Exception e) {
             log.info("LOG: Errore creazione preordine");
@@ -193,6 +202,8 @@ public class PreorderServiceImpl implements PreorderService {
         List<Product> products = preorder.getProductPreorders().stream().map(ProductPreorder::getProduct).toList();
         products.forEach(Product::calcReservedPreorders);
         productService.saveAll(products);
+
+
     }
 
     private void updateProductStock(Preorder preorder){

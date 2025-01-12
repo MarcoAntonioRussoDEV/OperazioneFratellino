@@ -1,63 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { z } from 'zod';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import iconToast from '@/utils/toastUtils';
-import { Spinner } from '@/components/ui/spinner.jsx';
-import CustomFormInput from '@/components/form/CustomFormInput';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Form,
-  FormItem,
-  FormControl,
-  FormLabel,
-  FormDescription,
-  FormField,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import {
-  capitalize,
-  codify,
-  generateProductCode,
-  useTranslateAndCapitalize,
-} from '@/utils/formatUtils';
-import { useTranslation } from 'react-i18next';
+import { Form } from '@/components/ui/form';
+import { generateProductCode } from '@/utils/formatUtils';
 import { Button } from '@/components/ui/button';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { ATTRIBUTE, CATEGORY, PRODUCT } from '@/config/entity/entities';
 import {
   resetStatus,
   createProduct,
-  productSlice,
   resetToastStatus,
 } from '@/redux/productSlice';
-import { Textarea } from '@/components/ui/textarea';
 import { getAllCategories } from '@/redux/categorySlice';
 import { getAllAttributes } from '@/redux/attributesSlice';
-import CustomSelect from '@/components/form/CustomSelect';
 import { axios, retryAttempt } from '@/config/axios/axiosConfig';
-import { PRODUCTS_DATA } from '@/config/links/urls';
 import { CATEGORIES_DATA } from '@/config/links/urls';
 import SimpleInput from '@/components/form/SimpleInput';
 import SimpleSelect from '@/components/form/SimpleSelect';
 import SimpleTextarea from '@/components/form/SimpleTextarea';
 import withFormContext from '@/components/HOC/withFormContext';
 import { PlusIcon, Trash2 } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import ComponentModal from '@/components/modal/ComponentModal';
-import CreateCategories from '@/pages/categories/create/CreateCategories';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppHooks, useToastHooks } from '@/hooks/useAppHooks';
+import { extractCategoryByProduct } from '@/utils/customUtils';
+import { STATUS_ENUM } from '@/utils/toastUtils';
 const EnhancedSimpleInput = withFormContext(SimpleInput);
 const EnhancedSimpleSelect = withFormContext(SimpleSelect);
 const EnhancedSimpleTextarea = withFormContext(SimpleTextarea);
@@ -135,15 +102,13 @@ const ProductForm = ({ product }) => {
     };
   }, []);
 
-  const handleValues = async (product) => {
+  const handleValues = (product) => {
     setValue('code', product.code);
     setValue('name', product.name);
     setValue('purchasePrice', product.purchasePrice);
     setValue('sellingPrice', product.sellingPrice);
     setValue('stock', product.stock);
     setValue('description', product.description);
-    const category = await axios.get(CATEGORIES_DATA.byId + product.category);
-    setValue('category', category.data.code);
     setValue(`existingProductAttributes`, product.attributes);
     product.attributes?.forEach((attribute, idx) => {
       setValue(
@@ -158,6 +123,12 @@ const ProductForm = ({ product }) => {
   };
 
   useEffect(() => {
+    if (categories.length > 0 && product?.code != null) {
+      setValue('category', extractCategoryByProduct(product.code));
+    }
+  }, [categories]);
+
+  useEffect(() => {
     if (product?.code != null) {
       handleValues(product);
     }
@@ -167,13 +138,13 @@ const ProductForm = ({ product }) => {
     setValue('code', newProductCode);
   }, [setValue, selectedCategoryCode, newProductCode]);
 
-  useToastHooks(
-    productsStatus,
-    ['created', 'failed'],
-    productsResponse,
-    resetToastStatus,
-    reset,
-  );
+  // useToastHooks(
+  //   productsStatus,
+  //   ['created', 'failed'],
+  //   productsResponse,
+  //   resetToastStatus,
+  //   reset,
+  // );
 
   useEffect(() => {
     if (productsStatus === 'created') {
@@ -200,17 +171,20 @@ const ProductForm = ({ product }) => {
   };
 
   const fetchLastCode = async (cat_code) => {
-    try {
-      // const response = await axios.get(PRODUCTS_DATA.byCategoryCode + cat_code);
-      const response = await axios.get(CATEGORIES_DATA.byCode + cat_code);
-      setNewProductCode(generateProductCode(response.data, cat_code));
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setSelectedCategoryCode(newProductCode);
+    if (cat_code) {
+      try {
+        // const response = await axios.get(PRODUCTS_DATA.byCategoryCode + cat_code);
+        const response = await axios.get(CATEGORIES_DATA.byCode + cat_code);
+        setNewProductCode(generateProductCode(response.data, cat_code));
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setSelectedCategoryCode(newProductCode);
+      }
     }
   };
   const handleCodeGenerator = (cat_code) => {
+    console.log('cat_code: ', cat_code);
     fetchLastCode(cat_code);
   };
 
@@ -225,10 +199,25 @@ const ProductForm = ({ product }) => {
     dispatch(createProduct(formData));
   };
 
+  useEffect(() => {
+    if (productsStatus === STATUS_ENUM.CREATED) {
+      navigate('/products');
+    }
+  }, [productsStatus]);
+
   const handleCreateCategory = () => {
     navigate('/categories/create', {
       state: { from: '/products/create', formData: getValues() },
     });
+  };
+
+  const getAvailableAttributes = (currentIndex) => {
+    const selectedAttributes = existingAttributeField
+      .slice(0, currentIndex)
+      .map((field) => field.attributeName);
+    return attributes.filter(
+      (attribute) => !selectedAttributes.includes(attribute.name),
+    );
   };
 
   return (
@@ -311,7 +300,7 @@ const ProductForm = ({ product }) => {
               <EnhancedSimpleSelect
                 name={`existingProductAttributes.${idx}.attributeName`}
                 label="attribute"
-                list={attributes}
+                list={getAvailableAttributes(idx)}
                 valueField="name"
                 placeholder="selectAttribute"
                 status={attributesStatus}
@@ -331,7 +320,7 @@ const ProductForm = ({ product }) => {
                 size="icon"
                 type="button"
                 onClick={() => {
-                  existingAttributeRemove(field.id);
+                  existingAttributeRemove(idx);
                 }}
                 className="self-end  aspect-square"
               >

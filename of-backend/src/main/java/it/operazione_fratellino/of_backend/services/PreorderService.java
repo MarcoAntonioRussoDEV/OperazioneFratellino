@@ -22,7 +22,7 @@ public interface PreorderService {
 
     Preorder saveAndGet(Preorder preorder);
 
-    ResponseEntity<String> updateStatus(Preorder preorder, String status);
+    ResponseEntity<String> updateStatus(Integer preorderID, String status);
 
     ResponseEntity<String> save(RequestPreorderDTO requestPreorderDTO);
 
