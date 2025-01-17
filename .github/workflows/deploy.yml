@@ -67,3 +67,4 @@ jobs:
                       cd ${{ secrets.FRONTEND_PATH }}
                       docker-compose down frontend
                       docker-compose up --build -d frontend
+                  debug: true
