@@ -3,32 +3,33 @@ name: Deploy
 on:
     push:
         branches:
-            - main # Sostituisci con il branch su cui vuoi attivare l'azione
+            - main
 
 jobs:
-    create-deploy-branch:
+    create-frontend-branch:
         runs-on: ubuntu-latest
 
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
 
-            - name: Create or update deploy branch
+            - name: Create or update frontend branch
               run: |
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                  git checkout -B deploy
-                  git push origin deploy --force
+                  git checkout -B frontend
+                  git filter-branch --subdirectory-filter of-frontend -- --all
+                  git push origin frontend --force
 
     deploy:
         runs-on: ubuntu-latest
-        needs: create-deploy-branch
+        needs: create-frontend-branch
 
         steps:
-            - name: Checkout deploy branch
+            - name: Checkout frontend branch
               uses: actions/checkout@v2
               with:
-                  ref: deploy
+                  ref: frontend
 
             - name: Set up Node.js
               uses: actions/setup-node@v2
@@ -37,29 +38,15 @@ jobs:
 
             - name: Install dependencies
               run: |
-                  cd of-frontend
                   npm install
 
             - name: Build frontend
               run: |
-                  cd of-frontend
                   npm run build
 
             - name: Verify build output
               run: |
-                  ls -la of-frontend/dist
-
-            - name: Copy dist to main branch
-              run: |
-                  git config --global user.name "github-actions[bot]"
-                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
-                  git checkout main
-                  git pull origin main
-                  rm -rf dist
-                  cp -r of-frontend/dist .
-                  git add dist
-                  git commit -m "Aggiorna dist"
-                  git push origin main
+                  ls -la dist
 
             - name: Copy files to server
               uses: appleboy/scp-action@v0.1.3
@@ -80,9 +67,3 @@ jobs:
                       cd ${{ secrets.FRONTEND_PATH }}
                       docker-compose down frontend
                       docker-compose up --build -d frontend
-
-            - name: Remove PEM file
-              run: |
-                  git rm of-frontend/localhost.pem
-                  git commit -m "Rimuovi il file localhost.pem dopo il deploy"
-                  git push origin main
