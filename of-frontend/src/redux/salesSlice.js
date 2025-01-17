@@ -140,7 +140,10 @@ export const monthsGainsChartDataResolver = (state, { from, to }) => {
         const options = { month: 'short' };
         monthSales = {
           head: capitalize(
-            date.toLocaleString(localStorage.getItem('language'), options),
+            date.toLocaleDateString(
+              localStorage.getItem('language') ?? 'IT',
+              options,
+            ),
           ),
           totalGain: (monthSales.totalGain += sale.sellingPrice),
           profit: (monthSales.profit += sale.profit),

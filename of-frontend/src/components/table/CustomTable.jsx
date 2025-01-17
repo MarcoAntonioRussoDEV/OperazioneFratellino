@@ -100,7 +100,7 @@ const CustomTable = ({
   };
 
   useEffect(() => {
-    return () => resetToast && dispatch(resetToast());
+    return () => dispatch(resetToast());
   }, []);
 
   return itemStatus === 'loading' || !items ? (

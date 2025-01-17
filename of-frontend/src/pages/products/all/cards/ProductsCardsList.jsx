@@ -1,7 +1,11 @@
 import {
   filterProduct,
   getAllProducts,
+  orderProducts,
+  resetProducts,
   resetStatus,
+  setItemsPerPage,
+  setPage,
 } from '@/redux/productSlice';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,11 +18,16 @@ import { CircleX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import iconToast from '@/utils/toastUtils';
 import { useSidebar } from '@/components/ui/sidebar';
+import Paginator from '@/components/table/Paginator';
+import { PRODUCT } from '@/config/entity/entities';
+import { useFilterHooks } from '@/hooks/useAppHooks';
 
 const ProductsCardsList = () => {
-  const { products, status: productStatus } = useSelector(
-    (state) => state.products,
-  );
+  const {
+    products,
+    status: productStatus,
+    pagination: { currentPage, itemsPerPage, totalItems, totalPages },
+  } = useSelector((state) => state.products);
   const searchRef = useRef();
   const { status: cartStatus, response: cartResponse } = useSelector(
     (state) => state.cart,
@@ -28,6 +37,16 @@ const ProductsCardsList = () => {
   const dispatch = useDispatch();
   const tc = useTranslateAndCapitalize();
   const { isMobile } = useSidebar();
+
+  const { handlePreviousPage, handleNextPage } = useFilterHooks(
+    getAllProducts,
+    resetProducts,
+    filterProduct,
+    orderProducts,
+    PRODUCT,
+    setPage,
+    setItemsPerPage,
+  );
 
   useEffect(() => {
     if (productStatus === 'idle' && isMobile) {
@@ -106,6 +125,15 @@ const ProductsCardsList = () => {
             );
           })}
         </div>
+        <Paginator
+          handlePrevious={handlePreviousPage}
+          handleNext={handleNextPage}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          setPage={setPage}
+        />
       </>
     );
   }

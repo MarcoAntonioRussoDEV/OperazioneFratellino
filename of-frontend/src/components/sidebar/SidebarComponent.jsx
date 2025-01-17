@@ -7,6 +7,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useTranslateAndCapitalize } from '@/utils/formatUtils';
 import { useTranslation } from 'react-i18next';
@@ -30,7 +31,7 @@ import { getAuthUser } from '@/redux/userSlice';
 const SidebarComponent = () => {
   const { t, i18n } = useTranslation();
   const tc = useTranslateAndCapitalize();
-  const { isOpen: sidebarIsOpen } = useSelector((state) => state.sidebar);
+  const { open: sidebarIsOpen } = useSidebar();
   const { schema } = useSelector((state) => state.theme);
   const changeLanguage = (language) => {
     i18n.changeLanguage(language);
