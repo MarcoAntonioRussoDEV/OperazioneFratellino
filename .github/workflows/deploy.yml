@@ -1,72 +1,66 @@
-name: Build and Push Docker Image
+name: Deploy
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main # Sostituisci con il branch su cui vuoi attivare l'azione
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
+    create-deploy-branch:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '18'  # Utilizzare una versione LTS di Node.js
+            - name: Create or update deploy branch
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+                  git checkout -B deploy
+                  git push origin deploy --force
 
-      - name: Cache node modules
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+    deploy:
+        runs-on: ubuntu-latest
+        needs: create-deploy-branch
 
-      - name: Set environment variables
-        run: echo "NODE_PATH=$(pwd)/of-frontend/node_modules" >> $GITHUB_ENV
+        steps:
+            - name: Checkout deploy branch
+              uses: actions/checkout@v2
+              with:
+                  ref: deploy
 
-      - name: Install dependencies
-        run: cd of-frontend && npm install
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: "14"
 
-      - name: List files in of-frontend
-        run: |
-          cd of-frontend
-          ls -l
+            - name: Install dependencies
+              run: |
+                  cd of-frontend
+                  npm install
 
-      - name: List files in of-frontend/src
-        run: |
-          cd of-frontend/src
-          ls -l
+            - name: Build frontend
+              run: |
+                  cd of-frontend
+                  npm run build
 
-      - name: List files in of-frontend/src/utils
-        run: |
-          cd of-frontend/src/utils
-          ls -l
+            - name: Copy files to server
+              uses: appleboy/scp-action@v0.1.3
+              with:
+                  host: ${{ secrets.SERVER_HOST }}
+                  username: ${{ secrets.SERVER_USER }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  source: "of-frontend/dist/*"
+                  target: ${{ secrets.FRONTEND_PATH }}
 
-      - name: Check Vite version
-        run: cd of-frontend && npx vite --version
-
-      - name: Build in debug mode
-        run: cd of-frontend && npm run build -- --debug
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-
-          
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: ./of-frontend
-          file: ./of-frontend/Dockerfile
-          push: true
-          tags: ocrama94/operazione_fratellino:v0.0.1
+            - name: SSH and rebuild Docker container
+              uses: appleboy/ssh-action@v0.1.3
+              with:
+                  host: ${{ secrets.SERVER_HOST }}
+                  username: ${{ secrets.SERVER_USER }}
+                  key: ${{ secrets.SERVER_SSH_KEY }}
+                  script: |
+                      cd ${{ secrets.FRONTEND_PATH }}
+                      docker-compose down frontend
+                      docker-compose up --build -d frontend
