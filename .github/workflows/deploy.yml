@@ -56,6 +56,8 @@ jobs:
                   password: ${{ secrets.SERVER_USER_PASSWORD }}
                   source: "./dist/*"
                   target: ${{ secrets.FRONTEND_PATH }}
+                  strip_components: 1
+                  overwrite: true
 
             - name: Verify files on server
               uses: appleboy/ssh-action@v0.1.3
@@ -74,5 +76,5 @@ jobs:
                   password: ${{ secrets.SERVER_USER_PASSWORD }}
                   script: |
                       cd ${{ secrets.FRONTEND_PATH }}
-                      docker-compose down
-                      docker-compose up --build -d
+                      docker-compose down frontend
+                      docker-compose up --build -d frontend
