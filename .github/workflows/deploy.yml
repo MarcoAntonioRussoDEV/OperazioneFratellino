@@ -54,7 +54,6 @@ jobs:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   password: ${{ secrets.SERVER_USER_PASSWORD }}
-                  key: ${{ secrets.SERVER_SSH_KEY }}
                   source: "./dist/*"
                   target: ${{ secrets.FRONTEND_PATH }}
 
@@ -64,7 +63,6 @@ jobs:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   password: ${{ secrets.SERVER_USER_PASSWORD }}
-                  key: ${{ secrets.SERVER_SSH_KEY }}
                   script: |
                       ls -la ${{ secrets.FRONTEND_PATH }}
 
@@ -74,7 +72,6 @@ jobs:
                   host: ${{ secrets.SERVER_HOST }}
                   username: ${{ secrets.SERVER_USER }}
                   password: ${{ secrets.SERVER_USER_PASSWORD }}
-                  key: ${{ secrets.SERVER_SSH_KEY }}
                   script: |
                       cd ${{ secrets.FRONTEND_PATH }}
                       docker-compose down frontend
