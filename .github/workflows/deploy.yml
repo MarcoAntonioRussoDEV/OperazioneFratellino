@@ -74,6 +74,5 @@ jobs:
                   password: ${{ secrets.SERVER_USER_PASSWORD }}
                   script: |
                       cd ${{ secrets.FRONTEND_PATH }}
-                      docker-compose down frontend
-                      docker-compose up --build -d frontend
-                  debug: true
+                      docker-compose down
+                      docker-compose up --build -d
