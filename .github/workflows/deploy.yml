@@ -33,7 +33,7 @@ jobs:
             - name: Set up Node.js
               uses: actions/setup-node@v2
               with:
-                  node-version: "14"
+                  node-version: "20"
 
             - name: Install dependencies
               run: |
@@ -44,6 +44,10 @@ jobs:
               run: |
                   cd of-frontend
                   npm run build
+
+            - name: Verify build output
+              run: |
+                  ls -la of-frontend/dist
 
             - name: Copy files to server
               uses: appleboy/scp-action@v0.1.3
