@@ -24,7 +24,7 @@ To simplify the delivery of the material, QR code scanning and the possibility o
 #### Get all items
 
 ```http
-  GET https://79.13.198.95/api/public/products/all
+  GET https://79.35.73.129/api/public/products/all
 ```
 
 
